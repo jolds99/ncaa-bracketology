@@ -51,8 +51,8 @@ net_2016 = rep(NA,351)
 net_2015 = rep(NA,351)
 
 
-
-
+# SOS Ranking
+url = getURL('sports-reference.com/cbb/seasons/2018-advanced-school-stats.html')
 
 
 
