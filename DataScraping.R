@@ -51,8 +51,111 @@ net_2016 = rep(NA,351)
 net_2015 = rep(NA,351)
 
 
-# SOS Ranking
-url = getURL('sports-reference.com/cbb/seasons/2018-advanced-school-stats.html')
+# SOS/SRS/Conference Record/Road Record
+sos_function = function(x){
+url = getURL(x)
+sos_url = readHTMLTable(url)
+sos_url = sos_url[["adv_school_stats"]]
+sos = sos_url[, c(2,7,8,9,10,13,14)]
+colnames(sos) = c("School", "SRS", "SOS", "Conf W", "Conf L", "Road W", "Road L")
+sos = sos[-c(21,22,43,44,65,66,87,88,109,110,131,132,153,154,175,176,197,198,219,220,241,242,263,264,285,286,307,308,329,330,351,352,373,374),] 
+sos$`Conf W`= as.character(sos$`Conf W`)
+sos$`Conf W`= as.numeric(sos$`Conf W`)
+sos$`Conf L`= as.character(sos$`Conf L`)
+sos$`Conf L`= as.numeric(sos$`Conf L`)
+sos$`Road W`= as.character(sos$`Road W`)
+sos$`Road W`= as.numeric(sos$`Road W`)
+sos$`Road L`= as.character(sos$`Road L`)
+sos$`Road L`= as.numeric(sos$`Road L`)
+sos$School = as.character(sos$School)
+sos$`Conf Win %` = round(sos$`Conf W`/ (sos$`Conf W` + sos$`Conf L`),3)
+sos$`Road Win %` = round(sos$`Road W`/ (sos$`Road W` + sos$`Road L`),3)
+sos = sos[, c(1,2,3,8,9)]
+sos
+}
+
+sos_2020 = sos_function('https://www.sports-reference.com/cbb/seasons/2020-advanced-school-stats.html')
+sos_2019 = sos_function('https://www.sports-reference.com/cbb/seasons/2019-advanced-school-stats.html')
+sos_2018 = sos_function('https://www.sports-reference.com/cbb/seasons/2018-advanced-school-stats.html')
+sos_2017 = sos_function('https://www.sports-reference.com/cbb/seasons/2017-advanced-school-stats.html')
+sos_2016 = sos_function('https://www.sports-reference.com/cbb/seasons/2016-advanced-school-stats.html')
+sos_2015 = sos_function('https://www.sports-reference.com/cbb/seasons/2015-advanced-school-stats.html')
+
+
+sos_2019$`Make Tournament` = rep(0, length(sos_2019$School))
+sos_2018$`Make Tournament` = rep(0, length(sos_2018$School))
+sos_2017$`Make Tournament` = rep(0, length(sos_2017$School))
+sos_2016$`Make Tournament` = rep(0, length(sos_2016$School))
+sos_2015$`Make Tournament` = rep(0, length(sos_2015$School))
+
+#Add Made Tournament Variable
+for(i in 1:length(sos_2019$School)){
+  if(isTRUE(grepl("NCAA", sos_2019$School)[i])){
+  sos_2019$`Make Tournament`[i] = 1
+  }
+}   
+length(which(sos_2019$`Make Tournament` == 1))
+
+for(i in 1:length(sos_2018$School)){
+  if(isTRUE(grepl("NCAA", sos_2018$School)[i])){
+    sos_2018$`Make Tournament`[i] = 1
+  }
+}   
+length(which(sos_2018$`Make Tournament` == 1))
+
+for(i in 1:length(sos_2017$School)){
+  if(isTRUE(grepl("NCAA", sos_2017$School)[i])){
+    sos_2017$`Make Tournament`[i] = 1
+  }
+}   
+length(which(sos_2017$`Make Tournament` == 1))
+
+for(i in 1:length(sos_2016$School)){
+  if(isTRUE(grepl("NCAA", sos_2016$School)[i])){
+    sos_2016$`Make Tournament`[i] = 1
+  }
+}   
+length(which(sos_2016$`Make Tournament` == 1))
+
+for(i in 1:length(sos_2015$School)){
+  if(isTRUE(grepl("NCAA", sos_2015$School)[i])){
+    sos_2015$`Make Tournament`[i] = 1
+  }
+}   
+length(which(sos_2015$`Make Tournament` == 1))
+
+
+## Removing NCAA from team names
+
+for(i in 1:length(sos_2019$School)){
+  sos_2019$School[i] = gsub("NCAA", "", sos_2019$School[i])
+}
 
 
 
+## Adding Tournament Champion Variable
+
+sos_2019$`Conference Champ` = rep(0, length(sos_2019$School))
+sos_2018$`Conference Champ` = rep(0, length(sos_2018$School))
+sos_2017$`Conference Champ` = rep(0, length(sos_2017$School))
+sos_2016$`Conference Champ` = rep(0, length(sos_2016$School))
+sos_2015$`Conference Champ` = rep(0, length(sos_2015$School))
+
+url = getURL('https://www.sports-reference.com/cbb/seasons/2019.html')
+champ_url = readHTMLTable(url)
+champ = champ_url[["conference-summary"]]
+champ = champ[,c(12,13)] 
+champ$`Tournament Champ` = as.character(champ$`Tournament Champ`)
+
+x = rep(NA, 32)
+for(i in 1:length(champ$`Tournament Champ`)){
+  x[i] = champ$`Tournament Champ`[i]
+}
+x
+
+x[1]
+sos_2019$School[178]
+
+x[1] == sos_2019$School[178]
+
+length(which(sos_2019$`Conference Champ` == 1))  
