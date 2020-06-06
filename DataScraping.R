@@ -8,7 +8,7 @@ install.packages("tidyverse")
 library(tidyverse)
 
 
-#RPI
+## RPI (TBD)
 rpi_function = function(x){
   url = getURL(x)
   rpi_url = readHTMLTable(url)
@@ -32,8 +32,8 @@ rpi_2017 = rpi_function('https://www.teamrankings.com/ncaa-basketball/rpi-rankin
 rpi_2016 = rpi_function('https://www.teamrankings.com/ncaa-basketball/rpi-ranking/rpi-rating-by-team?date=2016-03-12')
 rpi_2015 = rpi_function('https://www.teamrankings.com/ncaa-basketball/rpi-ranking/rpi-rating-by-team?date=2015-03-14')
 
-#NET Ranking (Only Since 2019)
-#Unable to find numerical values, only ranking
+## NET Ranking (Only Since 2019), (TBD)
+## Unable to find numerical values, only ranking
 
 net_ranking = function(x){
   url = getURL(x)
@@ -51,7 +51,7 @@ net_2016 = rep(NA,351)
 net_2015 = rep(NA,351)
 
 
-# SOS/SRS/Conference Record/Road Record
+## SOS/SRS/Conference Record/Road (All found in one chart) 
 sos_function = function(x){
 url = getURL(x)
 sos_url = readHTMLTable(url)
@@ -82,58 +82,59 @@ sos_2016 = sos_function('https://www.sports-reference.com/cbb/seasons/2016-advan
 sos_2015 = sos_function('https://www.sports-reference.com/cbb/seasons/2015-advanced-school-stats.html')
 
 
+## Add Made Tournament Variable
+
 sos_2019$`Make Tournament` = rep(0, length(sos_2019$School))
 sos_2018$`Make Tournament` = rep(0, length(sos_2018$School))
 sos_2017$`Make Tournament` = rep(0, length(sos_2017$School))
 sos_2016$`Make Tournament` = rep(0, length(sos_2016$School))
 sos_2015$`Make Tournament` = rep(0, length(sos_2015$School))
 
-#Add Made Tournament Variable
-for(i in 1:length(sos_2019$School)){
-  if(isTRUE(grepl("NCAA", sos_2019$School)[i])){
-  sos_2019$`Make Tournament`[i] = 1
+make_tournament_function = function(z){
+  x = z$School
+  y = z$`Make Tournament`
+  for(i in 1:length(x)){
+    if(isTRUE(grepl("NCAA", x)[i])){
+      y[i] = 1
+    }
   }
-}   
-length(which(sos_2019$`Make Tournament` == 1))
-
-for(i in 1:length(sos_2018$School)){
-  if(isTRUE(grepl("NCAA", sos_2018$School)[i])){
-    sos_2018$`Make Tournament`[i] = 1
-  }
-}   
-length(which(sos_2018$`Make Tournament` == 1))
-
-for(i in 1:length(sos_2017$School)){
-  if(isTRUE(grepl("NCAA", sos_2017$School)[i])){
-    sos_2017$`Make Tournament`[i] = 1
-  }
-}   
-length(which(sos_2017$`Make Tournament` == 1))
-
-for(i in 1:length(sos_2016$School)){
-  if(isTRUE(grepl("NCAA", sos_2016$School)[i])){
-    sos_2016$`Make Tournament`[i] = 1
-  }
-}   
-length(which(sos_2016$`Make Tournament` == 1))
-
-for(i in 1:length(sos_2015$School)){
-  if(isTRUE(grepl("NCAA", sos_2015$School)[i])){
-    sos_2015$`Make Tournament`[i] = 1
-  }
-}   
-length(which(sos_2015$`Make Tournament` == 1))
-
-
-## Removing NCAA from team names
-
-for(i in 1:length(sos_2019$School)){
-  sos_2019$School[i] = gsub("NCAA", "", sos_2019$School[i])
+  z$`Make Tournament` = y
+  z
 }
 
+sos_2019 = make_tournament_function(sos_2019)
+sos_2018 = make_tournament_function(sos_2018)
+sos_2017 = make_tournament_function(sos_2017)
+sos_2016 = make_tournament_function(sos_2016)
+sos_2015 = make_tournament_function(sos_2015)
+
+  ## Check to make sure 68 teams for each year
+  length(which(sos_2019$`Make Tournament` == 1))
+  length(which(sos_2018$`Make Tournament` == 1))
+  length(which(sos_2017$`Make Tournament` == 1))
+  length(which(sos_2016$`Make Tournament` == 1))
+  length(which(sos_2015$`Make Tournament` == 1))
 
 
-## Adding Tournament Champion Variable
+## Removing NCAA & extra space from team names
+
+remove_junk_function = function(z){
+  x = z$School
+  for(i in 1:length(x)){
+    x[i] = gsub("NCAA", "", x[i])
+    x[i] = str_trim(x[i], "right")
+  }
+  z$School = x
+  z
+}
+
+sos_2019 = remove_junk_function(sos_2019)
+sos_2018 = remove_junk_function(sos_2018)
+sos_2017 = remove_junk_function(sos_2017)
+sos_2016 = remove_junk_function(sos_2016)
+sos_2015 = remove_junk_function(sos_2015)
+
+## Adding Tournament Champion/Runner Up Variables
 
 sos_2019$`Conference Champ` = rep(0, length(sos_2019$School))
 sos_2018$`Conference Champ` = rep(0, length(sos_2018$School))
@@ -141,21 +142,103 @@ sos_2017$`Conference Champ` = rep(0, length(sos_2017$School))
 sos_2016$`Conference Champ` = rep(0, length(sos_2016$School))
 sos_2015$`Conference Champ` = rep(0, length(sos_2015$School))
 
-url = getURL('https://www.sports-reference.com/cbb/seasons/2019.html')
+sos_2019$`Conference Runner-Up` = rep(0, length(sos_2019$School))
+sos_2018$`Conference Runner-Up` = rep(0, length(sos_2018$School))
+sos_2017$`Conference Runner-Up` = rep(0, length(sos_2017$School))
+sos_2016$`Conference Runner-Up` = rep(0, length(sos_2016$School))
+sos_2015$`Conference Runner-Up` = rep(0, length(sos_2015$School))
+
+conference_champ_url_function = function(x){
+url = getURL(x)
 champ_url = readHTMLTable(url)
 champ = champ_url[["conference-summary"]]
 champ = champ[,c(12,13)] 
 champ$`Tournament Champ` = as.character(champ$`Tournament Champ`)
-
-x = rep(NA, 32)
-for(i in 1:length(champ$`Tournament Champ`)){
-  x[i] = champ$`Tournament Champ`[i]
+champ
 }
-x
 
-x[1]
-sos_2019$School[178]
+champ_2019 = conference_champ_url_function('https://www.sports-reference.com/cbb/seasons/2019.html')
+champ_2018 = conference_champ_url_function('https://www.sports-reference.com/cbb/seasons/2018.html')
+champ_2017 = conference_champ_url_function('https://www.sports-reference.com/cbb/seasons/2017.html')
+champ_2016 = conference_champ_url_function('https://www.sports-reference.com/cbb/seasons/2016.html')
+champ_2015 = conference_champ_url_function('https://www.sports-reference.com/cbb/seasons/2015.html')
 
-x[1] == sos_2019$School[178]
+  ## Fixing minor issues with data
+  champ_2015 = champ_2015[-18,]
+  champ_2015[16,2] = "Harvard"
+  champ_2016[15,2] = "Yale"
 
-length(which(sos_2019$`Conference Champ` == 1))  
+conference_champ_function = function(a,b){
+  x = a$`Tournament Champ`
+  y = b$School
+  z = b$`Conference Champ`
+  for(i in 1:length(x)){
+    for(j in 1:length(y)){
+      if(y[j] == x[i]){
+        z[j] = 1
+      }
+    }
+  }
+  b$`Conference Champ`= z
+  b
+}
+
+sos_2019 = conference_champ_function(champ_2019, sos_2019)
+sos_2018 = conference_champ_function(champ_2018, sos_2018)
+sos_2017 = conference_champ_function(champ_2017, sos_2017)
+sos_2016 = conference_champ_function(champ_2016, sos_2016)
+sos_2015 = conference_champ_function(champ_2015, sos_2015)
+
+  ## Check to make sure 32 conference champions each year
+
+  length(which(sos_2019$`Conference Champ` == 1))
+  length(which(sos_2018$`Conference Champ` == 1))
+  length(which(sos_2017$`Conference Champ` == 1))
+  length(which(sos_2016$`Conference Champ` == 1))
+  length(which(sos_2015$`Conference Champ` == 1))
+  
+## ADD CODE for RUNNER UP
+  
+
+## Last 12 Games Variable
+sos_2019$`Last 12 Win %` = rep(NA, length(sos_2019$School))
+sos_2018$`Last 12 Win %` = rep(NA, length(sos_2018$School))
+sos_2017$`Last 12 Win %` = rep(NA, length(sos_2017$School))
+sos_2016$`Last 12 Win %` = rep(NA, length(sos_2016$School)) 
+sos_2015$`Last 12 Win %` = rep(NA, length(sos_2015$School))
+
+last_12_function = function(x){
+url = getURL('https://www.sports-reference.com/cbb/schools/abilene-christian/2019-schedule.html')
+games_url = readHTMLTable(url)
+games = odds_url[["schedule"]]
+games = games[, c(4,8)]
+colnames(games) = c("Type", "Result")
+games$Type = as.character(games$Type)
+games$Result = as.character(games$Result)
+for(i in 1:length(games$Result)){
+  if(isFALSE(grepl("REG", games$Type)[i])){
+    games = games[-i,]
+  }
+}
+for(i in 1:length(games$Result)){
+  if(isTRUE(grepl("Type", games$Type)[i])){
+    games = games[-i,] 
+  }
+}
+for(i in 1:length(games$Result)){
+  if(isTRUE(grepl("CTOURN", games$Type)[i])){
+    games = games[-i,] 
+  }
+}
+for(i in 1:length(games$Result)){
+  if(isTRUE(grepl("NCAA", games$Type)[i])){
+    games = games[-i,] 
+  }
+}
+games[32,1]
+games = games[(length(games$Type)-11):length(games$Type),]
+winpercentage = length(which(games$Result == "W")) / (length(which(games$Result == "W"))+length(which(games$Result == "L")))
+winpercentage
+}
+
+last_12_function('https://www.sports-reference.com/cbb/schools/abilene-christian/2019-schedule.html')
