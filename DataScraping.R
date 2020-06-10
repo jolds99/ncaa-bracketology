@@ -7,7 +7,6 @@ library(XML)
 install.packages("tidyverse")
 library(tidyverse)
 
-
 ## RPI (TBD)
 rpi_function = function(x){
   url = getURL(x)
@@ -167,6 +166,7 @@ champ_2015 = conference_champ_url_function('https://www.sports-reference.com/cbb
   champ_2015 = champ_2015[-18,]
   champ_2015[16,2] = "Harvard"
   champ_2016[15,2] = "Yale"
+  sos_2015[206,4] = .000
 
 conference_champ_function = function(a,b){
   x = a$`Tournament Champ`
@@ -201,6 +201,7 @@ sos_2015 = conference_champ_function(champ_2015, sos_2015)
   
 
 ## Last 12 Games Variable
+sos_2020$`Last 12 Win %` = rep(NA, length(sos_2020$School))
 sos_2019$`Last 12 Win %` = rep(NA, length(sos_2019$School))
 sos_2018$`Last 12 Win %` = rep(NA, length(sos_2018$School))
 sos_2017$`Last 12 Win %` = rep(NA, length(sos_2017$School))
@@ -208,37 +209,256 @@ sos_2016$`Last 12 Win %` = rep(NA, length(sos_2016$School))
 sos_2015$`Last 12 Win %` = rep(NA, length(sos_2015$School))
 
 last_12_function = function(x){
-url = getURL('https://www.sports-reference.com/cbb/schools/abilene-christian/2019-schedule.html')
+url = getURL(x)
 games_url = readHTMLTable(url)
-games = odds_url[["schedule"]]
+games = games_url[["schedule"]]
 games = games[, c(4,8)]
 colnames(games) = c("Type", "Result")
 games$Type = as.character(games$Type)
 games$Result = as.character(games$Result)
-for(i in 1:length(games$Result)){
-  if(isFALSE(grepl("REG", games$Type)[i])){
-    games = games[-i,]
-  }
+non_reg = grep("REG", games$Type, invert = TRUE)
+length = length(non_reg)
+if(length != 0){
+  games = games[c(-non_reg),]
 }
-for(i in 1:length(games$Result)){
-  if(isTRUE(grepl("Type", games$Type)[i])){
-    games = games[-i,] 
-  }
-}
-for(i in 1:length(games$Result)){
-  if(isTRUE(grepl("CTOURN", games$Type)[i])){
-    games = games[-i,] 
-  }
-}
-for(i in 1:length(games$Result)){
-  if(isTRUE(grepl("NCAA", games$Type)[i])){
-    games = games[-i,] 
-  }
-}
-games[32,1]
 games = games[(length(games$Type)-11):length(games$Type),]
-winpercentage = length(which(games$Result == "W")) / (length(which(games$Result == "W"))+length(which(games$Result == "L")))
+winpercentage = round(length(which(games$Result == "W")) / (length(which(games$Result == "W"))+length(which(games$Result == "L"))),3)
 winpercentage
 }
 
-last_12_function('https://www.sports-reference.com/cbb/schools/abilene-christian/2019-schedule.html')
+ ## Checking that same 351 teams from 2015-18
+x = rep(NA,351)
+for(i in 1:length(sos_2015$School)){
+  x[i] = identical(sos_2015$School[i],sos_2016$School[i])
+}
+which(x == FALSE)
+
+x = rep(NA,351)
+for(i in 1:length(sos_2015$School)){
+  x[i] = identical(sos_2015$School[i],sos_2017$School[i])
+}
+which(x == FALSE)
+
+x = rep(NA,351)
+for(i in 1:length(sos_2015$School)){
+  x[i] = identical(sos_2015$School[i],sos_2018$School[i])
+}
+which(x == FALSE)
+  ## Same, can use same team list for 4 years. 
+
+  ## Checking that same 353 teams from 2019-2020
+x = rep(NA,353)
+for(i in 1:length(sos_2019$School)){
+  x[i] = identical(sos_2019$School[i],sos_2020$School[i])
+}
+
+which(x == FALSE)
+  ## Not the same, will adjust
+
+schools_19 = c("abilene-christian", "air-force", "akron", "alabama-am", "alabama-birmingham",
+               "alabama-state", "alabama", "albany-ny", "alcorn-state", "american", "appalachian-state",
+               "arizona-state", "arizona", "arkansas-little-rock", "arkansas-pine-bluff", "arkansas-state",
+               "arkansas", "army", "auburn", "austin-peay", "ball-state", "baylor", "belmont", "bethune-cookman",
+               "binghamton", "boise-state", "boston-college", "boston-university", "bowling-green-state",
+               "bradley", "brigham-young", "brown", "bryant", "bucknell", "buffalo", "butler", "cal-poly",
+               "cal-state-bakersfield", "cal-state-fullerton", "cal-state-northridge", "california-baptist",
+               "california-davis", "california-irvine", "california-riverside", "california-santa-barbara", 
+               "california", "campbell", "canisius", "central-arkansas", "central-connecticut-state", "central-florida",
+               "central-michigan", "charleston-southern", "charlotte", "chattanooga", "chicago-state",
+               "cincinnati", "citadel", "clemson", "cleveland-state", "coastal-carolina", "colgate", 
+               "college-of-charleston", "colorado-state", "colorado", "columbia", "connecticut", "coppin-state", 
+               "cornell", "creighton", "dartmouth", "davidson", "dayton", "delaware-state", "delaware",
+               "denver", "depaul", "detroit-mercy", "drake", "drexel", "duke", "duquesne", "east-carolina", 
+               "east-tennessee-state", "eastern-illinois", "eastern-kentucky", "eastern-michigan", "eastern-washington",
+               "elon", "evansville", "fairfield", "fairleigh-dickinson", "florida-am", "florida-atlantic",
+               "florida-gulf-coast", "florida-international", "florida-state", "florida", "fordham", "fresno-state",
+               "furman", "gardner-webb", "george-mason", "george-washington", "georgetown", "georgia-southern", 
+               "georgia-state", "georgia-tech", "georgia", "gonzaga", "grambling", "grand-canyon", "green-bay",
+               "hampton", "hartford", "harvard", "hawaii", "high-point", "hofstra", "holy-cross", "houston-baptist", 
+               "houston", "howard", "idaho-state", "idaho", "illinois-chicago", "illinois-state", "illinois",
+               "incarnate-word", "indiana-state", "indiana", "iona", "iowa-state", "iowa", "ipfw", "iupui", "jackson-state",
+               "jacksonville-state", "jacksonville", "james-madison", "kansas-state", "kansas", "kennesaw-state", 
+               "kent-state", "kentucky", "la-salle", "lafayette", "lamar", "lehigh", "liberty", "lipscomb",
+               "long-beach-state", "long-island-university", "longwood", "louisiana-lafayette", "louisiana-monroe",
+               "louisiana-state", "louisiana-tech", "louisville", "loyola-il", "loyola-marymount", "loyola-md", 
+               "maine", "manhattan", "marist", "marquette", "marshall", "maryland-baltimore-county", "maryland-eastern-shore",
+               "maryland", "massachusetts-lowell", "massachusetts", "mcneese-state", "memphis", "mercer", "miami-fl",
+               "miami-oh", "michigan-state", "michigan", "middle-tennessee", "milwaukee", "minnesota", "mississippi-state",
+               "mississippi-valley-state", "mississippi", "missouri-kansas-city", "missouri-state", "missouri", "monmouth",
+               "montana-state", "montana", "morehead-state", "morgan-state", "mount-st-marys", "murray-state",
+               "navy", "nebraska-omaha", "nebraska", "nevada-las-vegas", "nevada", "new-hampshire", "new-mexico-state", 
+               "new-mexico", "new-orleans", "niagara", "nicholls-state", "njit", "norfolk-state", "north-alabama",
+               "north-carolina-asheville", "north-carolina-at", "north-carolina-central", "north-carolina-greensboro",
+               "north-carolina-state", "north-carolina-wilmington", "north-carolina", "north-dakota-state", "north-dakota", 
+               "north-florida", "north-texas", "northeastern", "northern-arizona", "northern-colorado", "northern-illinois", 
+               "northern-iowa", "northern-kentucky", "northwestern-state", "northwestern", "notre-dame", "oakland", "ohio-state","ohio", 
+               "oklahoma-state", "oklahoma", "old-dominion", "oral-roberts", "oregon-state", "oregon", "pacific", "penn-state", 
+               "pennsylvania", "pepperdine", "pittsburgh", "portland-state", "portland", "prairie-view", "presbyterian", "princeton",
+               "providence", "purdue", "quinnipiac", "radford", "rhode-island", "rice", "richmond", "rider", "robert-morris",
+               "rutgers", "sacramento-state", "sacred-heart", "saint-francis-pa", "saint-josephs", "saint-louis", "saint-marys-ca",
+               "saint-peters", "sam-houston-state", "samford", "san-diego-state", "san-diego", "san-francisco", "san-jose-state",
+               "santa-clara", "savannah-state", "seattle", "seton-hall", "siena", "south-alabama", "south-carolina-state", 
+               "south-carolina-upstate", "south-carolina", "south-dakota-state", "south-dakota", "south-florida", "southeast-missouri-state",
+               "southeastern-louisiana", "southern-california", "southern-illinois-edwardsville", "southern-illinois", "southern-methodist",
+               "southern-mississippi", "southern-utah", "southern", "st-bonaventure", "st-francis-ny", "st-johns-ny", "stanford", "stephen-f-austin",
+               "stetson", "stony-brook", "syracuse", "temple", "tennessee-martin", "tennessee-state", "tennessee-tech",
+               "tennessee", "texas-am-corpus-christi", "texas-am", "texas-arlington", "texas-christian", "texas-el-paso", 
+               "texas-pan-american", "texas-san-antonio", "texas-southern", "texas-state", "texas-tech", "texas", "toledo",
+               "towson", "troy", "tulane", "tulsa", "ucla", "utah-state", "utah-valley", "utah", "valparaiso", 
+               "vanderbilt", "vermont", "villanova", "virginia-commonwealth", "virginia-military-institute", "virginia-tech", 
+               "virginia", "wagner", "wake-forest", "washington-state", "washington", "weber-state", "west-virginia", 
+               "western-carolina", "western-illinois", "western-kentucky", "western-michigan", "wichita-state", "william-mary",
+               "winthrop", "wisconsin", "wofford", "wright-state", "wyoming", "xavier", "yale", "youngstown-state")
+
+link = rep(NA, 353)
+for(i in 1:353){
+  link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_19[i],"/2019-schedule.html", sep = "")
+  sos_2019$`Last 12 Win %`[i] = last_12_function(link[i])
+} 
+
+schools_20 = c("abilene-christian", "air-force", "akron", "alabama-am", "alabama-birmingham",
+               "alabama-state", "alabama", "albany-ny", "alcorn-state", "american", "appalachian-state",
+               "arizona-state", "arizona", "arkansas-little-rock", "arkansas-pine-bluff", "arkansas-state",
+               "arkansas", "army", "auburn", "austin-peay", "ball-state", "baylor", "belmont", "bethune-cookman",
+               "binghamton", "boise-state", "boston-college", "boston-university", "bowling-green-state",
+               "bradley", "brigham-young", "brown", "bryant", "bucknell", "buffalo", "butler", "cal-poly",
+               "cal-state-bakersfield", "cal-state-fullerton", "cal-state-northridge", "california-baptist",
+               "california-davis", "california-irvine", "california-riverside", "california-santa-barbara", 
+               "california", "campbell", "canisius", "central-arkansas", "central-connecticut-state", "central-florida",
+               "central-michigan", "charleston-southern", "charlotte", "chattanooga", "chicago-state",
+               "cincinnati", "citadel", "clemson", "cleveland-state", "coastal-carolina", "colgate", 
+               "college-of-charleston", "colorado-state", "colorado", "columbia", "connecticut", "coppin-state", 
+               "cornell", "creighton", "dartmouth", "davidson", "dayton", "delaware-state", "delaware",
+               "denver", "depaul", "detroit-mercy", "drake", "drexel", "duke", "duquesne", "east-carolina", 
+               "east-tennessee-state", "eastern-illinois", "eastern-kentucky", "eastern-michigan", "eastern-washington",
+               "elon", "evansville", "fairfield", "fairleigh-dickinson", "florida-am", "florida-atlantic",
+               "florida-gulf-coast", "florida-international", "florida-state", "florida", "fordham", "fresno-state",
+               "furman", "gardner-webb", "george-mason", "george-washington", "georgetown", "georgia-southern", 
+               "georgia-state", "georgia-tech", "georgia", "gonzaga", "grambling", "grand-canyon", "green-bay",
+               "hampton", "hartford", "harvard", "hawaii", "high-point", "hofstra", "holy-cross", "houston-baptist", 
+               "houston", "howard", "idaho-state", "idaho", "illinois-chicago", "illinois-state", "illinois",
+               "incarnate-word", "indiana-state", "indiana", "iona", "iowa-state", "iowa", "ipfw", "iupui", "jackson-state",
+               "jacksonville-state", "jacksonville", "james-madison", "kansas-state", "kansas", "kennesaw-state", 
+               "kent-state", "kentucky", "la-salle", "lafayette", "lamar", "lehigh", "liberty", "lipscomb",
+               "long-beach-state", "long-island-university", "longwood", "louisiana-lafayette", "louisiana-monroe",
+               "louisiana-state", "louisiana-tech", "louisville", "loyola-il", "loyola-marymount", "loyola-md", 
+               "maine", "manhattan", "marist", "marquette", "marshall", "maryland-baltimore-county", "maryland-eastern-shore",
+               "maryland", "massachusetts-lowell", "massachusetts", "mcneese-state", "memphis", "mercer", "merrimack", "miami-fl",
+               "miami-oh", "michigan-state", "michigan", "middle-tennessee", "milwaukee", "minnesota", "mississippi-state",
+               "mississippi-valley-state", "mississippi", "missouri-kansas-city", "missouri-state", "missouri", "monmouth",
+               "montana-state", "montana", "morehead-state", "morgan-state", "mount-st-marys", "murray-state",
+               "navy", "nebraska-omaha", "nebraska", "nevada-las-vegas", "nevada", "new-hampshire", "new-mexico-state", 
+               "new-mexico", "new-orleans", "niagara", "nicholls-state", "njit", "norfolk-state", "north-alabama",
+               "north-carolina-asheville", "north-carolina-at", "north-carolina-central", "north-carolina-greensboro",
+               "north-carolina-state", "north-carolina-wilmington", "north-carolina", "north-dakota-state", "north-dakota", 
+               "north-florida", "north-texas", "northeastern", "northern-arizona", "northern-colorado", "northern-illinois", 
+               "northern-iowa", "northern-kentucky", "northwestern-state", "northwestern", "notre-dame", "oakland", "ohio-state","ohio", 
+               "oklahoma-state", "oklahoma", "old-dominion", "oral-roberts", "oregon-state", "oregon", "pacific", "penn-state", 
+               "pennsylvania", "pepperdine", "pittsburgh", "portland-state", "portland", "prairie-view", "presbyterian", "princeton",
+               "providence", "purdue", "quinnipiac", "radford", "rhode-island", "rice", "richmond", "rider", "robert-morris",
+               "rutgers", "sacramento-state", "sacred-heart", "saint-francis-pa", "saint-josephs", "saint-louis", "saint-marys-ca",
+               "saint-peters", "sam-houston-state", "samford", "san-diego-state", "san-diego", "san-francisco", "san-jose-state",
+               "santa-clara", "seattle", "seton-hall", "siena", "south-alabama", "south-carolina-state", 
+               "south-carolina-upstate", "south-carolina", "south-dakota-state", "south-dakota", "south-florida", "southeast-missouri-state",
+               "southeastern-louisiana", "southern-california", "southern-illinois-edwardsville", "southern-illinois", "southern-methodist",
+               "southern-mississippi", "southern-utah", "southern", "st-bonaventure", "st-francis-ny", "st-johns-ny", "stanford", "stephen-f-austin",
+               "stetson", "stony-brook", "syracuse", "temple", "tennessee-martin", "tennessee-state", "tennessee-tech",
+               "tennessee", "texas-am-corpus-christi", "texas-am", "texas-arlington", "texas-christian", "texas-el-paso", 
+               "texas-pan-american", "texas-san-antonio", "texas-southern", "texas-state", "texas-tech", "texas", "toledo",
+               "towson", "troy", "tulane", "tulsa", "ucla", "utah-state", "utah-valley", "utah", "valparaiso", 
+               "vanderbilt", "vermont", "villanova", "virginia-commonwealth", "virginia-military-institute", "virginia-tech", 
+               "virginia", "wagner", "wake-forest", "washington-state", "washington", "weber-state", "west-virginia", 
+               "western-carolina", "western-illinois", "western-kentucky", "western-michigan", "wichita-state", "william-mary",
+               "winthrop", "wisconsin", "wofford", "wright-state", "wyoming", "xavier", "yale", "youngstown-state")
+link = rep(NA,353)
+for(i in 1:353){
+  link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_20[i],"/2020-schedule.html", sep = "")
+  sos_2020$`Last 12 Win %`[i] = last_12_function(link[i])
+} 
+
+schools_15_18 = c("abilene-christian", "air-force", "akron", "alabama-am", "alabama-birmingham",
+               "alabama-state", "alabama", "albany-ny", "alcorn-state", "american", "appalachian-state",
+               "arizona-state", "arizona", "arkansas-little-rock", "arkansas-pine-bluff", "arkansas-state",
+               "arkansas", "army", "auburn", "austin-peay", "ball-state", "baylor", "belmont", "bethune-cookman",
+               "binghamton", "boise-state", "boston-college", "boston-university", "bowling-green-state",
+               "bradley", "brigham-young", "brown", "bryant", "bucknell", "buffalo", "butler", "cal-poly",
+               "cal-state-bakersfield", "cal-state-fullerton", "cal-state-northridge",
+               "california-davis", "california-irvine", "california-riverside", "california-santa-barbara", 
+               "california", "campbell", "canisius", "central-arkansas", "central-connecticut-state", "central-florida",
+               "central-michigan", "charleston-southern", "charlotte", "chattanooga", "chicago-state",
+               "cincinnati", "citadel", "clemson", "cleveland-state", "coastal-carolina", "colgate", 
+               "college-of-charleston", "colorado-state", "colorado", "columbia", "connecticut", "coppin-state", 
+               "cornell", "creighton", "dartmouth", "davidson", "dayton", "delaware-state", "delaware",
+               "denver", "depaul", "detroit-mercy", "drake", "drexel", "duke", "duquesne", "east-carolina", 
+               "east-tennessee-state", "eastern-illinois", "eastern-kentucky", "eastern-michigan", "eastern-washington",
+               "elon", "evansville", "fairfield", "fairleigh-dickinson", "florida-am", "florida-atlantic",
+               "florida-gulf-coast", "florida-international", "florida-state", "florida", "fordham", "fresno-state",
+               "furman", "gardner-webb", "george-mason", "george-washington", "georgetown", "georgia-southern", 
+               "georgia-state", "georgia-tech", "georgia", "gonzaga", "grambling", "grand-canyon", "green-bay",
+               "hampton", "hartford", "harvard", "hawaii", "high-point", "hofstra", "holy-cross", "houston-baptist", 
+               "houston", "howard", "idaho-state", "idaho", "illinois-chicago", "illinois-state", "illinois",
+               "incarnate-word", "indiana-state", "indiana", "iona", "iowa-state", "iowa", "ipfw", "iupui", "jackson-state",
+               "jacksonville-state", "jacksonville", "james-madison", "kansas-state", "kansas", "kennesaw-state", 
+               "kent-state", "kentucky", "la-salle", "lafayette", "lamar", "lehigh", "liberty", "lipscomb",
+               "long-beach-state", "long-island-university", "longwood", "louisiana-lafayette", "louisiana-monroe",
+               "louisiana-state", "louisiana-tech", "louisville", "loyola-il", "loyola-marymount", "loyola-md", 
+               "maine", "manhattan", "marist", "marquette", "marshall", "maryland-baltimore-county", "maryland-eastern-shore",
+               "maryland", "massachusetts-lowell", "massachusetts", "mcneese-state", "memphis", "mercer", "miami-fl",
+               "miami-oh", "michigan-state", "michigan", "middle-tennessee", "milwaukee", "minnesota", "mississippi-state",
+               "mississippi-valley-state", "mississippi", "missouri-kansas-city", "missouri-state", "missouri", "monmouth",
+               "montana-state", "montana", "morehead-state", "morgan-state", "mount-st-marys", "murray-state",
+               "navy", "nebraska-omaha", "nebraska", "nevada-las-vegas", "nevada", "new-hampshire", "new-mexico-state", 
+               "new-mexico", "new-orleans", "niagara", "nicholls-state", "njit", "norfolk-state",
+               "north-carolina-asheville", "north-carolina-at", "north-carolina-central", "north-carolina-greensboro",
+               "north-carolina-state", "north-carolina-wilmington", "north-carolina", "north-dakota-state", "north-dakota", 
+               "north-florida", "north-texas", "northeastern", "northern-arizona", "northern-colorado", "northern-illinois", 
+               "northern-iowa", "northern-kentucky", "northwestern-state", "northwestern", "notre-dame", "oakland", "ohio-state","ohio", 
+               "oklahoma-state", "oklahoma", "old-dominion", "oral-roberts", "oregon-state", "oregon", "pacific", "penn-state", 
+               "pennsylvania", "pepperdine", "pittsburgh", "portland-state", "portland", "prairie-view", "presbyterian", "princeton",
+               "providence", "purdue", "quinnipiac", "radford", "rhode-island", "rice", "richmond", "rider", "robert-morris",
+               "rutgers", "sacramento-state", "sacred-heart", "saint-francis-pa", "saint-josephs", "saint-louis", "saint-marys-ca",
+               "saint-peters", "sam-houston-state", "samford", "san-diego-state", "san-diego", "san-francisco", "san-jose-state",
+               "santa-clara", "savannah-state", "seattle", "seton-hall", "siena", "south-alabama", "south-carolina-state", 
+               "south-carolina-upstate", "south-carolina", "south-dakota-state", "south-dakota", "south-florida", "southeast-missouri-state",
+               "southeastern-louisiana", "southern-california", "southern-illinois-edwardsville", "southern-illinois", "southern-methodist",
+               "southern-mississippi", "southern-utah", "southern", "st-bonaventure", "st-francis-ny", "st-johns-ny", "stanford", "stephen-f-austin",
+               "stetson", "stony-brook", "syracuse", "temple", "tennessee-martin", "tennessee-state", "tennessee-tech",
+               "tennessee", "texas-am-corpus-christi", "texas-am", "texas-arlington", "texas-christian", "texas-el-paso", 
+               "texas-pan-american", "texas-san-antonio", "texas-southern", "texas-state", "texas-tech", "texas", "toledo",
+               "towson", "troy", "tulane", "tulsa", "ucla", "utah-state", "utah-valley", "utah", "valparaiso", 
+               "vanderbilt", "vermont", "villanova", "virginia-commonwealth", "virginia-military-institute", "virginia-tech", 
+               "virginia", "wagner", "wake-forest", "washington-state", "washington", "weber-state", "west-virginia", 
+               "western-carolina", "western-illinois", "western-kentucky", "western-michigan", "wichita-state", "william-mary",
+               "winthrop", "wisconsin", "wofford", "wright-state", "wyoming", "xavier", "yale", "youngstown-state")
+
+link = rep(NA,351)
+for(i in 1:351){
+  link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_15_18[i],"/2018-schedule.html", sep = "")
+  sos_2018$`Last 12 Win %`[i] = last_12_function(link[i])
+  link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_15_18[i],"/2017-schedule.html", sep = "")
+  sos_2017$`Last 12 Win %`[i] = last_12_function(link[i])
+  link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_15_18[i],"/2016-schedule.html", sep = "")
+  sos_2016$`Last 12 Win %`[i] = last_12_function(link[i])
+  link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_15_18[i],"/2015-schedule.html", sep = "")
+  sos_2015$`Last 12 Win %`[i] = last_12_function(link[i])
+} 
+
+## Adding # of wins in last 12 games variable (perhaps better for analysis)
+sos_2020$`Last 12 Wins`= rep(NA,353)
+sos_2019$`Last 12 Wins`= rep(NA,353)
+sos_2018$`Last 12 Wins`= rep(NA,351)
+sos_2017$`Last 12 Wins`= rep(NA,351)
+sos_2016$`Last 12 Wins`= rep(NA,351)
+sos_2015$`Last 12 Wins`= rep(NA,351)
+
+for(i in 1:length(sos_2020$`Last 12 Wins`)){
+  sos_2020$`Last 12 Wins`[i] = round(sos_2020$`Last 12 Win %`[i]*12,0)
+  sos_2019$`Last 12 Wins`[i] = round(sos_2019$`Last 12 Win %`[i]*12,0)
+}
+for(i in 1:length(sos_2018$`Last 12 Wins`)){
+  sos_2018$`Last 12 Wins`[i] = round(sos_2018$`Last 12 Win %`[i]*12,0)
+  sos_2017$`Last 12 Wins`[i] = round(sos_2017$`Last 12 Win %`[i]*12,0)
+  sos_2016$`Last 12 Wins`[i] = round(sos_2016$`Last 12 Win %`[i]*12,0)
+  sos_2015$`Last 12 Wins`[i] = round(sos_2015$`Last 12 Win %`[i]*12,0)
+}
+
