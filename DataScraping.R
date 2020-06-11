@@ -42,7 +42,7 @@ library(tidyverse)
 
 
   ## Add Made Tournament Variable
-  
+  sos_2020$`Make Tournament` = rep(NA, length(sos_2020$School))
   sos_2019$`Make Tournament` = rep(0, length(sos_2019$School))
   sos_2018$`Make Tournament` = rep(0, length(sos_2018$School))
   sos_2017$`Make Tournament` = rep(0, length(sos_2017$School))
@@ -95,6 +95,7 @@ library(tidyverse)
 
   ## Adding Tournament Champion Variable
   
+  sos_2020$`Conference Champ` = rep(NA, length(sos_2020$School))
   sos_2019$`Conference Champ` = rep(0, length(sos_2019$School))
   sos_2018$`Conference Champ` = rep(0, length(sos_2018$School))
   sos_2017$`Conference Champ` = rep(0, length(sos_2017$School))
@@ -413,15 +414,12 @@ library(tidyverse)
     sos_2015$`Last 12 Wins`[i] = round(sos_2015$`Last 12 Win %`[i]*12,0)
   }
   
-
-## Variables NOT yet added to master datasets
-
-  ## Creating conference standings
+  ## Adding variable for conference standings
   conferences = c("aac", "acc", "america-east", "atlantic-10", "atlantic-sun",
-                "big-12", "big-east", "big-sky", "big-south", "big-ten", "big-west",
-                "colonial", "cusa", "horizon", "ivy", "maac", "mac", "meac", "mvc",
-                "mwc", "northeast", "ovc", "pac-12", "patriot", "sec", "southern",
-                "southland", "summit", "sun-belt", "swac", "wac", "wcc")
+                  "big-12", "big-east", "big-sky", "big-south", "big-ten", "big-west",
+                  "colonial", "cusa", "horizon", "ivy", "maac", "mac", "meac", "mvc",
+                  "mwc", "northeast", "ovc", "pac-12", "patriot", "sec", "southern",
+                  "southland", "summit", "sun-belt", "swac", "wac", "wcc")
   link_2015 = rep(NA,32)
   link_2016 = rep(NA,32)
   link_2017 = rep(NA,32)
@@ -438,13 +436,6 @@ library(tidyverse)
     link_2020[i] = paste("https://www.sports-reference.com/cbb/conferences/",conferences[i],"/2020.html#all_conference-tournament", sep = "")
   }
   
-  standings_2015 = NULL
-  standings_2016 = NULL
-  standings_2017 = NULL
-  standings_2018 = NULL
-  standings_2019 = NULL
-  standings_2020 = NULL
-
   conference_standings_url_function = function(x){
     url = getURL(x)
     champ_url = readHTMLTable(url)
@@ -456,44 +447,155 @@ library(tidyverse)
     champ$School = as.character(champ$School)
     champ
   }
+  
+      standings_2015 = NULL
+      for(i in 1:32){
+        champ = conference_standings_url_function(link_2015[i])
+        standings_2015 = rbind(standings_2015,champ)
+      }
+      standings_2015[351,c(1:2)] = c(4, "NJIT")
+      standings_2015 = standings_2015[order(standings_2015$School),]
+      setdiff(sos_2015$School, standings_2015$School)
+      standings_2015$School[282] = "SIU Edwardsville"
+      standings_2015$School[330] = "VMI"
+  
+      ## Rearranging order of team names in standings_2015
+      combination<-as.matrix(expand.grid(standings_2015$School, sos_2015$School))
+      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+      standings_2015$School = combination1[1:351,1]
+      
+      ## Check that order of team names matches sos_2015
+      ed_dist = rep(NA,351)
+      for(i in 1:length(sos_2015$School)){
+        ed_dist[i] = adist(sos_2015$School[i], standings_2015$School[i])
+      }
+      which(ed_dist != 0)
+      
+      standings_2016 = NULL
+      for(i in 1:32){
+        champ = conference_standings_url_function(link_2016[i])
+        standings_2016 = rbind(standings_2016,champ)
+      }
+      standings_2016 = standings_2016[order(standings_2016$School),]
+      setdiff(sos_2016$School, standings_2016$School)
+      standings_2016$School[282] = "SIU Edwardsville"
+      standings_2016$School[330] = "VMI"
+      
+      ## Rearranging order of team names in standings_2016
+      combination<-as.matrix(expand.grid(standings_2016$School, sos_2016$School))
+      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+      standings_2016$School = combination1[1:351,1]
+      
+      ## Check that order of team names matches sos_2016
+      ed_dist = rep(NA,351)
+      for(i in 1:length(sos_2016$School)){
+        ed_dist[i] = adist(sos_2016$School[i], standings_2016$School[i])
+      }
+      which(ed_dist != 0)
+      
+      standings_2017 = NULL
+      for(i in 1:32){
+        champ = conference_standings_url_function(link_2017[i])
+        standings_2017 = rbind(standings_2017,champ)
+      }
+      standings_2017 = standings_2017[order(standings_2017$School),]
+      setdiff(sos_2017$School, standings_2017$School)
+      standings_2017$School[282] = "SIU Edwardsville"
+      standings_2017$School[330] = "VMI"
+      
+      ## Rearranging order of team names in standings_2017
+      combination<-as.matrix(expand.grid(standings_2017$School, sos_2017$School))
+      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+      standings_2017$School = combination1[1:351,1]
+      
+      ## Check that order of team names matches sos_2017
+      ed_dist = rep(NA,351)
+      for(i in 1:length(sos_2017$School)){
+        ed_dist[i] = adist(sos_2017$School[i], standings_2017$School[i])
+      }
+      which(ed_dist != 0)
+      
+      standings_2018 = NULL
+      for(i in 1:32){
+        champ = conference_standings_url_function(link_2018[i])
+        standings_2018 = rbind(standings_2018,champ)
+      }
+      standings_2018 = standings_2018[order(standings_2018$School),]
+      setdiff(sos_2018$School, standings_2018$School)
+      standings_2018$School[282] = "SIU Edwardsville"
+      standings_2018$School[330] = "VMI"
+      
+      ## Rearranging order of team names in standings_2018
+      combination<-as.matrix(expand.grid(standings_2018$School, sos_2018$School))
+      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+      standings_2018$School = combination1[1:351,1]
+      
+      ## Checking that order of team names matches sos_2018
+      ed_dist = rep(NA,351)
+      for(i in 1:length(sos_2018$School)){
+        ed_dist[i] = adist(sos_2018$School[i], standings_2018$School[i])
+      }
+      which(ed_dist != 0)
+      
+      standings_2019 = NULL
+      for(i in 1:32){
+        champ = conference_standings_url_function(link_2019[i])
+        standings_2019 = rbind(standings_2019,champ)
+      }
+      standings_2019 = standings_2019[order(standings_2019$School),]
+      setdiff(sos_2019$School, standings_2019$School)
+      standings_2019$School[284] = "SIU Edwardsville"
+      standings_2019$School[332] = "VMI"
+      
+      ## Rearranging order of team names in standings_2019
+      combination<-as.matrix(expand.grid(standings_2019$School, sos_2019$School))
+      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+      standings_2019$School = combination1[1:353,1]
+      
+      ## Check that order of team names matches sos_2019
+      ed_dist = rep(NA,353)
+      for(i in 1:length(sos_2019$School)){
+        ed_dist[i] = adist(sos_2019$School[i], standings_2019$School[i])
+      }
+      which(ed_dist != 0)
+      
+      standings_2020 = NULL
+      for(i in 1:32){
+        champ = conference_standings_url_function(link_2020[i])
+        standings_2020 = rbind(standings_2020,champ)
+      }
+      standings_2020 = standings_2020[order(standings_2020$School),]
+      setdiff(sos_2020$School, standings_2020$School)
+      standings_2020$School[284] = "SIU Edwardsville"
+      standings_2020$School[332] = "VMI"
+      
+      ## Rearranging order of team names in standings_2020
+      combination<-as.matrix(expand.grid(standings_2020$School, sos_2020$School))
+      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+      standings_2020$School = combination1[1:353,1]
+      
+      ## Check that order of team names matches sos_2020
+      ed_dist = rep(NA,353)
+      for(i in 1:length(sos_2020$School)){
+        ed_dist[i] = adist(sos_2020$School[i], standings_2020$School[i])
+      }
+      which(ed_dist != 0)
+  
+  sos_2015 = cbind(sos_2015,standings_2015$Rk)
+  colnames(sos_2015)[10] = "Conference Finish"
+  sos_2016 = cbind(sos_2016,standings_2016$Rk)
+  colnames(sos_2016)[10] = "Conference Finish"
+  sos_2017 = cbind(sos_2017,standings_2017$Rk)
+  colnames(sos_2017)[10] = "Conference Finish"
+  sos_2018 = cbind(sos_2018,standings_2018$Rk)
+  colnames(sos_2018)[10] = "Conference Finish"
+  sos_2019 = cbind(sos_2019,standings_2019$Rk)
+  colnames(sos_2019)[10] = "Conference Finish"
+  sos_2020 = cbind(sos_2020,standings_2020$Rk)
+  colnames(sos_2020)[10] = "Conference Finish"
 
-  for(i in 1:32){
-    champ = conference_standings_url_function(link_2015[i])
-    standings_2015 = rbind(standings_2015,champ)
-  }
-  standings_2015[351,c(1:2)] = c(4, "NJIT")
-  standings_2015 = standings_2015[order(standings_2015$School),]
-
-  for(i in 1:32){
-    champ = conference_standings_url_function(link_2016[i])
-    standings_2016 = rbind(standings_2016,champ)
-  }
-  standings_2016 = standings_2016[order(standings_2016$School),]
-
-  for(i in 1:32){
-    champ = conference_standings_url_function(link_2017[i])
-    standings_2017 = rbind(standings_2017,champ)
-  }
-  standings_2017 = standings_2017[order(standings_2017$School),]
-
-  for(i in 1:32){
-    champ = conference_standings_url_function(link_2018[i])
-    standings_2018 = rbind(standings_2018,champ)
-  }
-  standings_2018 = standings_2018[order(standings_2018$School),]
-
-  for(i in 1:32){
-    champ = conference_standings_url_function(link_2019[i])
-    standings_2019 = rbind(standings_2019,champ)
-  }
-  standings_2019 = standings_2019[order(standings_2019$School),]
-
-  for(i in 1:32){
-    champ = conference_standings_url_function(link_2020[i])
-    standings_2020 = rbind(standings_2020,champ)
-  }
-  standings_2020 = standings_2020[order(standings_2020$School),]
-
+## Variables NOT yet added to master datasets
+  
   ## Creating RPI 
   rpi_function = function(x){
     url = getURL(x)
@@ -536,6 +638,73 @@ library(tidyverse)
   net_2016 = rep(NA,351)
   net_2015 = rep(NA,351)
   
+  
+  team_list = sos_2019$School
+  clean_names = function(raw_name,team_list){
+    for(i in 1:length(sos_2019$School)){
+      ed_dist = adist(raw_name[i], team_list)
+      best = which(ed_dist == min(ed_dist))[1] # [1] breaks ties
+    raw_name[i] = team_list[best]
+    }
+    raw_name
+  }
+  
+  clean_names(rpi_2019$Team, team_list)
+  
+  
+  ed_dist = rep(NA,353)
+  for(i in 1:length(sos_2019$School)){
+   
+   ed_dist[i] = adist(sos_2019$School[i], rpi_2019$Team[i])
+  }
+  
+  match_1 = cbind(sos_2019$School, rpi_2019$Team)
+  
+  match <- match_1 %>%
+    tidy_comb_all(.) %>%
+    tidy_stringdist(., method = "jw") %>%
+    filter(., V1 != V2) %>%
+    select(V1, V2, jw) %>%
+    as.data.frame(.) %>%
+    arrange(., jw)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  library(tidyverse)
+  install.packages("tidystringdist")
+  library(tidystringdist)
+  
+  sos_names = unique(sos_2019$School)
+  rpi_names = unique(rpi_2019$Team)
+  
+  sos_match <- sos_names %>%
+    tidy_comb_all(.) %>%
+    tidy_stringdist(., method = "jw") %>%
+    filter(., V1 != V2) %>%
+    select(V1, V2, jw) %>%
+    as.data.frame(.) %>%
+    arrange(., jw)
+  
+  rpi_match <- rpi_names %>%
+    tidy_comb_all(.) %>%
+    tidy_stringdist(., method = "jw") %>%
+    filter(., V1 != V2) %>%
+    select(V1, V2, jw) %>%
+    as.data.frame(.) %>%
+    arrange(., jw)
+  
+  readr::write_rds(, "./data/String Comparison of Golfer Names")
+  readr::write_rds(teams_mat, "./data/String Comparison of Team Names")
+  # use readr::read_rds(path)
+  
+  # at this point, conduct visual check to see if clustering is necessary
   
 
 
