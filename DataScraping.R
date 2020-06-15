@@ -465,6 +465,7 @@ library(R.utils)
     champ
   }
   
+      ## 2015 standings
       standings_2015 = NULL
       for(i in 1:32){
         champ = conference_standings_url_function(link_2015[i])
@@ -475,21 +476,36 @@ library(R.utils)
       setdiff(sr_2015$School, standings_2015$School)
       standings_2015$School[282] = "SIU Edwardsville"
       standings_2015$School[330] = "VMI"
-  
-      ## Rearranging order of team names in standings_2015
-      combination<-as.matrix(expand.grid(standings_2015$School, sr_2015$School))
-      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-      combination1 = combination1[1:351,1]
-      combination1 = as.data.frame(combination1)
-      standings_2015 = cbind(standings_2015,combination1)
+      standings_2015$Rk = as.character(standings_2015$Rk)
+
+          ## Creating vector with correct order of team names
+          combination<-as.matrix(expand.grid(standings_2015$School, sr_2015$School))
+          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+          combination1 = combination1[1:351,1]
+          combination1 = as.data.frame(combination1)
+          colnames(combination1)[1] = "School"
+          combination1$School = as.character(combination1$School)
+          finish = rep(NA,length(combination1$School))
+        
+          ## Adding correct rank to correct team name
+          for(i in 1:length(combination1$School)){
+              if(combination1$School[i] == standings_2015$School[i]){
+                finish[i] = standings_2015$Rk[i]
+              }
+              else if(combination1$School[i] != standings_2015$School[i]){
+                finish[i] = standings_2015$Rk[which(adist(combination1$School[i], standings_2015$School) == 0)]
+              }
+            }
+          standings_2015 = cbind(combination1, finish)
+          
+          ## Check that order of team names matches sr_2015
+          ed_dist = rep(NA,351)
+          for(i in 1:length(sr_2015$School)){
+            ed_dist[i] = adist(sr_2015$School[i], standings_2015$School[i])
+          }
+          which(ed_dist != 0)
       
-      ## Check that order of team names matches sr_2015
-      ed_dist = rep(NA,351)
-      for(i in 1:length(sr_2015$School)){
-        ed_dist[i] = adist(sr_2015$School[i], standings_2015$School[i])
-      }
-      which(ed_dist != 0)
-      
+      ## 2016 standings
       standings_2016 = NULL
       for(i in 1:32){
         champ = conference_standings_url_function(link_2016[i])
@@ -499,21 +515,36 @@ library(R.utils)
       setdiff(sr_2016$School, standings_2016$School)
       standings_2016$School[282] = "SIU Edwardsville"
       standings_2016$School[330] = "VMI"
+      standings_2016$Rk = as.character(standings_2016$Rk)
       
-      ## Rearranging order of team names in standings_2016
-      combination<-as.matrix(expand.grid(standings_2016$School, sr_2016$School))
-      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-      combination1 = combination1[1:351,1]
-      combination1 = as.data.frame(combination1)
-      standings_2016 = cbind(standings_2016,combination1)
+          ## Creating vector with correct order of team names
+          combination<-as.matrix(expand.grid(standings_2016$School, sr_2016$School))
+          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+          combination1 = combination1[1:351,1]
+          combination1 = as.data.frame(combination1)
+          colnames(combination1)[1] = "School"
+          combination1$School = as.character(combination1$School)
+          finish = rep(NA,length(combination1$School))
+          
+          ## Adding correct rank to correct team name
+          for(i in 1:length(combination1$School)){
+            if(combination1$School[i] == standings_2016$School[i]){
+              finish[i] = standings_2016$Rk[i]
+            }
+            else if(combination1$School[i] != standings_2016$School[i]){
+              finish[i] = standings_2016$Rk[which(adist(combination1$School[i], standings_2016$School) == 0)]
+            }
+          }
+          standings_2016 = cbind(combination1, finish)
+          
+          ## Check that order of team names matches sr_2016
+          ed_dist = rep(NA,351)
+          for(i in 1:length(sr_2016$School)){
+            ed_dist[i] = adist(sr_2016$School[i], sr_2016$School[i])
+          }
+          which(ed_dist != 0)
       
-      ## Check that order of team names matches sr_2016
-      ed_dist = rep(NA,351)
-      for(i in 1:length(sr_2016$School)){
-        ed_dist[i] = adist(sr_2016$School[i], sr_2016$School[i])
-      }
-      which(ed_dist != 0)
-      
+      ## 2017 standings
       standings_2017 = NULL
       for(i in 1:32){
         champ = conference_standings_url_function(link_2017[i])
@@ -523,21 +554,36 @@ library(R.utils)
       setdiff(sr_2017$School, standings_2017$School)
       standings_2017$School[282] = "SIU Edwardsville"
       standings_2017$School[330] = "VMI"
+      standings_2017$Rk = as.character(standings_2017$Rk)
       
-      ## Rearranging order of team names in standings_2017
-      combination<-as.matrix(expand.grid(standings_2017$School, sr_2017$School))
-      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-      combination1 = combination1[1:353,1]
-      combination1 = as.data.frame(combination1)
-      standings_2017 = cbind(standings_2017,combination1)
+          ## Creating vector with correct order of team names
+          combination<-as.matrix(expand.grid(standings_2017$School, sr_2017$School))
+          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+          combination1 = combination1[1:351,1]
+          combination1 = as.data.frame(combination1)
+          colnames(combination1)[1] = "School"
+          combination1$School = as.character(combination1$School)
+          finish = rep(NA,length(combination1$School))
+          
+          ## Adding correct rank to correct team name
+          for(i in 1:length(combination1$School)){
+            if(combination1$School[i] == standings_2017$School[i]){
+              finish[i] = standings_2017$Rk[i]
+            }
+            else if(combination1$School[i] != standings_2017$School[i]){
+              finish[i] = standings_2017$Rk[which(adist(combination1$School[i], standings_2017$School) == 0)]
+            }
+          }
+          standings_2017 = cbind(combination1, finish)
+          
+          ## Check that order of team names matches sr_2017
+          ed_dist = rep(NA,351)
+          for(i in 1:length(sr_2017$School)){
+            ed_dist[i] = adist(sr_2017$School[i], standings_2017$School[i])
+          }
+          which(ed_dist != 0)
       
-      ## Check that order of team names matches sr_2017
-      ed_dist = rep(NA,351)
-      for(i in 1:length(sr_2017$School)){
-        ed_dist[i] = adist(sr_2017$School[i], standings_2017$School[i])
-      }
-      which(ed_dist != 0)
-      
+      ## 2018 standings
       standings_2018 = NULL
       for(i in 1:32){
         champ = conference_standings_url_function(link_2018[i])
@@ -547,21 +593,36 @@ library(R.utils)
       setdiff(sr_2018$School, standings_2018$School)
       standings_2018$School[282] = "SIU Edwardsville"
       standings_2018$School[330] = "VMI"
+      standings_2018$Rk = as.character(standings_2018$Rk)
       
-      ## Rearranging order of team names in standings_2018
-      combination<-as.matrix(expand.grid(standings_2018$School, sr_2018$School))
-      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-      combination1 = combination1[1:353,1]
-      combination1 = as.data.frame(combination1)
-      standings_2018 = cbind(standings_2018,combination1)
+          ## Creating vector with correct order of team names
+          combination<-as.matrix(expand.grid(standings_2018$School, sr_2018$School))
+          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+          combination1 = combination1[1:351,1]
+          combination1 = as.data.frame(combination1)
+          colnames(combination1)[1] = "School"
+          combination1$School = as.character(combination1$School)
+          finish = rep(NA,length(combination1$School))
+          
+          ## Adding correct rank to correct team name
+          for(i in 1:length(combination1$School)){
+            if(combination1$School[i] == standings_2018$School[i]){
+              finish[i] = standings_2018$Rk[i]
+            }
+            else if(combination1$School[i] != standings_2018$School[i]){
+              finish[i] = standings_2018$Rk[which(adist(combination1$School[i], standings_2018$School) == 0)]
+            }
+          }
+          standings_2018 = cbind(combination1, finish)
+          
+          ## Checking that order of team names matches sr_2018
+          ed_dist = rep(NA,351)
+          for(i in 1:length(sr_2018$School)){
+            ed_dist[i] = adist(sr_2018$School[i], standings_2018$School[i])
+          }
+          which(ed_dist != 0)
       
-      ## Checking that order of team names matches sr_2018
-      ed_dist = rep(NA,351)
-      for(i in 1:length(sr_2018$School)){
-        ed_dist[i] = adist(sr_2018$School[i], standings_2018$School[i])
-      }
-      which(ed_dist != 0)
-      
+      ## 2019 standings
       standings_2019 = NULL
       for(i in 1:32){
         champ = conference_standings_url_function(link_2019[i])
@@ -571,20 +632,34 @@ library(R.utils)
       setdiff(sr_2019$School, standings_2019$School)
       standings_2019$School[284] = "SIU Edwardsville"
       standings_2019$School[332] = "VMI"
+      standings_2019$Rk = as.character(standings_2019$Rk)
       
-      ## Rearranging order of team names in standings_2019
-      combination<-as.matrix(expand.grid(standings_2019$School, sr_2019$School))
-      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-      combination1 = combination1[1:353,1]
-      combination1 = as.data.frame(combination1)
-      standings_2019 = cbind(standings_2019,combination1)
-      
-      ## Check that order of team names matches sr_2019
-      ed_dist = rep(NA,353)
-      for(i in 1:length(sr_2019$School)){
-        ed_dist[i] = adist(sr_2019$School[i], standings_2019$School[i])
-      }
-      which(ed_dist != 0)
+          ## Creating vector with correct order of team names
+          combination<-as.matrix(expand.grid(standings_2019$School, sr_2019$School))
+          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
+          combination1 = combination1[1:353,1]
+          combination1 = as.data.frame(combination1)
+          colnames(combination1)[1] = "School"
+          combination1$School = as.character(combination1$School)
+          finish = rep(NA,length(combination1$School))
+          
+          ## Adding correct rank to correct team name
+          for(i in 1:length(combination1$School)){
+            if(combination1$School[i] == standings_2019$School[i]){
+              finish[i] = standings_2019$Rk[i]
+            }
+            else if(combination1$School[i] != standings_2019$School[i]){
+              finish[i] = standings_2019$Rk[which(adist(combination1$School[i], standings_2019$School) == 0)]
+            }
+          }
+          standings_2019 = cbind(combination1, finish)
+          
+          ## Check that order of team names matches sr_2019
+          ed_dist = rep(NA,353)
+          for(i in 1:length(sr_2019$School)){
+            ed_dist[i] = adist(sr_2019$School[i], standings_2019$School[i])
+          }
+          which(ed_dist != 0)
       
       standings_2020 = NULL
       for(i in 1:32){
@@ -595,13 +670,27 @@ library(R.utils)
       setdiff(sr_2020$School, standings_2020$School)
       standings_2020$School[284] = "SIU Edwardsville"
       standings_2020$School[332] = "VMI"
+      standings_2020$Rk = as.character(standings_2020$Rk)
       
-      ## Rearranging order of team names in standings_2020
+      ## Creating vector with correct order of team names
       combination<-as.matrix(expand.grid(standings_2020$School, sr_2020$School))
       combination1 = as.matrix(combination[combination[,1] == combination[,2]])
       combination1 = combination1[1:353,1]
       combination1 = as.data.frame(combination1)
-      standings_2020 = cbind(standings_2020,combination1)
+      colnames(combination1)[1] = "School"
+      combination1$School = as.character(combination1$School)
+      finish = rep(NA,length(combination1$School))
+      
+      ## Adding correct rank to correct team name
+      for(i in 1:length(combination1$School)){
+        if(combination1$School[i] == standings_2020$School[i]){
+          finish[i] = standings_2020$Rk[i]
+        }
+        else if(combination1$School[i] != standings_2020$School[i]){
+          finish[i] = standings_2020$Rk[which(adist(combination1$School[i], standings_2020$School) == 0)]
+        }
+      }
+      standings_2020 = cbind(combination1, finish)
       
       ## Check that order of team names matches sos_2020
       ed_dist = rep(NA,353)
@@ -610,17 +699,17 @@ library(R.utils)
       }
       which(ed_dist != 0)
   
-  sr_2015 = cbind(sr_2015,standings_2015$Rk)
+  sr_2015 = cbind(sr_2015,standings_2015$finish)
   colnames(sr_2015)[6] = "Conference Finish"
-  sr_2016 = cbind(sr_2016,standings_2016$Rk)
+  sr_2016 = cbind(sr_2016,standings_2016$finish)
   colnames(sr_2016)[6] = "Conference Finish"
-  sr_2017 = cbind(sr_2017,standings_2017$Rk)
+  sr_2017 = cbind(sr_2017,standings_2017$finish)
   colnames(sr_2017)[6] = "Conference Finish"
-  sr_2018 = cbind(sr_2018,standings_2018$Rk)
+  sr_2018 = cbind(sr_2018,standings_2018$finish)
   colnames(sr_2018)[6] = "Conference Finish"
-  sr_2019 = cbind(sr_2019,standings_2019$Rk)
+  sr_2019 = cbind(sr_2019,standings_2019$finish)
   colnames(sr_2019)[6] = "Conference Finish"
-  sr_2020 = cbind(sr_2020,standings_2020$Rk)
+  sr_2020 = cbind(sr_2020,standings_2020$finish)
   colnames(sr_2020)[6] = "Conference Finish"
   
 ## Variables NOT yet added to either dataset
