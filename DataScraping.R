@@ -30,12 +30,12 @@ library(R.utils)
       data_hold
     }
     
-    data_2020 = create_data_function("20200312_team_results.json")
-    data_2019 = create_data_function("20190316_team_results.json")
-    data_2018 = create_data_function("20180310_team_results.json")
-    data_2017 = create_data_function("20170311_team_results.json")
-    data_2016 = create_data_function("20160312_team_results.json")
-    data_2015 = create_data_function("20150314_team_results.json")
+    data_2020 = create_data_function("JSON Data Files/20200312_team_results.json")
+    data_2019 = create_data_function("JSON Data Files/20190316_team_results.json")
+    data_2018 = create_data_function("JSON Data Files/20180310_team_results.json")
+    data_2017 = create_data_function("JSON Data Files/20170311_team_results.json")
+    data_2016 = create_data_function("JSON Data Files/20160312_team_results.json")
+    data_2015 = create_data_function("JSON Data Files/20150314_team_results.json")
     
   ## Using SportsReference data to add other variables
   load_sr_names_function = function(x){
