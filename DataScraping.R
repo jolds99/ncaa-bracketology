@@ -727,7 +727,7 @@ library(R.utils)
       rpi$Team[i] = gsub("\\W", "", rpi$Team[i])
     }
     
-    rpi = rpi[,c(2,3)]
+    rpi = rpi[,c(1,2,3)]
     rpi = rpi[order(rpi$Team),]
   }
   
@@ -737,6 +737,365 @@ library(R.utils)
   rpi_2017 = rpi_function('https://www.teamrankings.com/ncaa-basketball/rpi-ranking/rpi-rating-by-team?date=2017-03-11')
   rpi_2016 = rpi_function('https://www.teamrankings.com/ncaa-basketball/rpi-ranking/rpi-rating-by-team?date=2016-03-12')
   rpi_2015 = rpi_function('https://www.teamrankings.com/ncaa-basketball/rpi-ranking/rpi-rating-by-team?date=2015-03-14')
+  
+  ## Defining Functions to Build Dictionaries
+  
+      greedyAssign <- function(a,b,d){
+        x <- numeric(length(a)) # assign variable: 0 for unassigned but assignable, 
+        # 1 for already assigned, -1 for unassigned and unassignable
+        while(any(x==0)){
+          min_d <- min(d[x==0]) # identify closest pair, arbitrarily selecting 1st if multiple pairs
+          a_sel <- a[d==min_d & x==0][1] 
+          b_sel <- b[d==min_d & a == a_sel & x==0][1] 
+          x[a==a_sel & b == b_sel] <- 1
+          x[x==0 & (a==a_sel|b==b_sel)] <- -1
+        }
+        cbind(a=a[x==1],b=b[x==1],d=d[x==1])
+      }
+      
+      create_dictionary_function = function(x,y){ #x = sr_year$School, y = rpi_year$Team
+        library(stringdist)
+        distance_chart <- expand.grid(x,y) 
+        names(distance_chart) <- c("SR School","RPI School")
+        distance_chart$distance <- stringdist(distance_chart$`SR School`,distance_chart$`RPI School`, method="jw")
+        
+        dictionary = data.frame(greedyAssign(as.character(distance_chart$`SR School`),as.character(distance_chart$`RPI School`),distance_chart$distance))
+        dictionary$a = as.character(dictionary$a)
+        dictionary$b = as.character(dictionary$b)
+        dictionary
+      } 
+      
+      add_rpi_function = function(x,y,z){ #x = rpi_year, y = dictionary_year, z = sr_year
+        for(i in 1:length(x$Team)){
+          for(j in 1:length(y$b)){
+            if(x$Team[i] == y$b[j]){
+              x$Team[i] = y$a[j]
+            }
+          }
+        }
+        
+        x$Rank = as.character(x$Rank)
+        x$Rating = as.character(x$Rating)
+        
+        RPI = rep(NA,length(z$School))
+        `RPI Rank` = rep(NA,length(z$School))
+        for(i in 1:length(z$School)){
+          for(j in 1:length(x$Team)){
+            if(z$School[i] == x$Team[j]){
+              RPI[i] = x$Rating[j]
+              `RPI Rank`[i] = x$Rank[j]
+            }
+          }
+        }
+        z = cbind(z,RPI,`RPI Rank`)
+        z
+      }
+      
+  ## 2020 RPI
+  dictionary_2020 = create_dictionary_function(sr_2020$School,rpi_2020$Team)
+  dictionary_2020[35,2] = "ETennSt"
+  dictionary_2020[36,2] = "NCAT"
+  dictionary_2020[79,2] = "ILChicago"
+  dictionary_2020[83,2] = "TNState"
+  dictionary_2020[85,2] = "WashState"
+  dictionary_2020[87,2] = "LAMonroe"
+  dictionary_2020[98,2] = "SUtah"
+  dictionary_2020[99,2] = "TXSouthern"
+  dictionary_2020[120,2] = "EWashingtn"
+  dictionary_2020[141,2] = "MissState"
+  dictionary_2020[143,2] = "LATech"
+  dictionary_2020[145,2] = "GASouthern"
+  dictionary_2020[147,2] = "GATech"
+  dictionary_2020[156,2] = "NKentucky"
+  dictionary_2020[179,2] = "LSU"
+  dictionary_2020[188,2] = "NIowa"
+  dictionary_2020[191,2] = "NIllinois"
+  dictionary_2020[192,2] = "NCWilmgton"
+  dictionary_2020[193,2] = "NColorado"
+  dictionary_2020[194,2] = "NCAsheville"
+  dictionary_2020[195,2] = "NArizona"
+  dictionary_2020[196,2] = "SEMissouri"
+  dictionary_2020[197,2] = "BYU"
+  dictionary_2020[208,2] = "EIllinois"
+  dictionary_2020[209,2] = "NWState"
+  dictionary_2020[211,2] = "TNTech"
+  dictionary_2020[220,2] = "NCCentral"
+  dictionary_2020[262,2] = "VATech"
+  dictionary_2020[265,2] = "LALafayette"
+  dictionary_2020[266,2] = "UMKC"
+  dictionary_2020[270,2] = "StFranPA"
+  dictionary_2020[281,2] = "SELouisiana"
+  dictionary_2020[287,2] = "SCUpstate"
+  dictionary_2020[295,2] = "NCState"
+  dictionary_2020[296,2] = "NCGrnsboro"
+  dictionary_2020[297,2] = "TNMartin"
+  dictionary_2020[309,2] = "SIllinois"
+  dictionary_2020[317,2] = "California"
+  dictionary_2020[325,2] = "WmMary"
+  dictionary_2020[327,2] = "VAMilitary"
+  dictionary_2020[335,2] = "LgBeachSt"
+  dictionary_2020[346,2] = "FDickinson"
+  
+      ## Check all names are included
+      setdiff(rpi_2020$Team, dictionary_2020$b)
+      ## Add RPI Variable
+      sr_2020 = add_rpi_function(rpi_2020,dictionary_2020,sr_2020)
+  
+  ## 2019 RPI
+  dictionary_2019 = create_dictionary_function(sr_2019$School,rpi_2019$Team)
+  dictionary_2019[35,2] = "NKentucky"
+  dictionary_2019[36,2] = "NCAT"
+  dictionary_2019[79,2] = "ILChicago"
+  dictionary_2019[83,2] = "TNState"
+  dictionary_2019[85,2] = "WashState"
+  dictionary_2019[87,2] = "LAMonroe"
+  dictionary_2019[98,2] = "SUtah"
+  dictionary_2019[99,2] = "TXSouthern"
+  dictionary_2019[120,2] = "EWashingtn"
+  dictionary_2019[141,2] = "MissState"
+  dictionary_2019[143,2] = "LATech"
+  dictionary_2019[145,2] = "GASouthern"
+  dictionary_2019[147,2] = "GATech"
+  dictionary_2019[150,2] = "ETennSt"
+  dictionary_2019[156,2] = "LIUBrooklyn"
+  dictionary_2019[178,2] = "LSU"
+  dictionary_2019[187,2] = "NIowa"
+  dictionary_2019[190,2] = "NIllinois"
+  dictionary_2019[191,2] = "NCWilmgton"
+  dictionary_2019[192,2] = "NColorado"
+  dictionary_2019[193,2] = "NCAsheville"
+  dictionary_2019[194,2] = "NArizona"
+  dictionary_2019[195,2] = "SEMissouri"
+  dictionary_2019[196,2] = "BYU"
+  dictionary_2019[207,2] = "EIllinois"
+  dictionary_2019[208,2] = "NWState"
+  dictionary_2019[210,2] = "TNTech"
+  dictionary_2019[219,2] = "NCCentral"
+  dictionary_2019[262,2] = "VATech"
+  dictionary_2019[265,2] = "LALafayette"
+  dictionary_2019[266,2] = "UMKC"
+  dictionary_2019[270,2] = "StFranPA"
+  dictionary_2019[281,2] = "SELouisiana"
+  dictionary_2019[287,2] = "SCUpstate"
+  dictionary_2019[295,2] = "NCState"
+  dictionary_2019[296,2] = "NCGrnsboro"
+  dictionary_2019[297,2] = "TNMartin"
+  dictionary_2019[307,2] = "TXPanAm"
+  dictionary_2019[309,2] = "SIllinois"
+  dictionary_2019[317,2] = "California"
+  dictionary_2019[325,2] = "WmMary"
+  dictionary_2019[327,2] = "VAMilitary"
+  dictionary_2019[335,2] = "LgBeachSt"
+  dictionary_2019[346,2] = "FDickinson"
+  
+      ## Check all names are included
+      setdiff(rpi_2019$Team, dictionary_2019$b)
+      ## Add RPI Variable
+      sr_2019 = add_rpi_function(rpi_2019, dictionary_2019, sr_2019)
+  
+  ## 2018 RPI
+  dictionary_2018 = create_dictionary_function(sr_2018$School,rpi_2018$Team)
+  dictionary_2018[35,2] = "NKentucky"
+  dictionary_2018[36,2] = "NCAT"
+  dictionary_2018[78,2] = "ILChicago"
+  dictionary_2018[82,2] = "TNState"
+  dictionary_2018[84,2] = "WashState"
+  dictionary_2018[86,2] = "LAMonroe"
+  dictionary_2018[97,2] = "SUtah"
+  dictionary_2018[98,2] = "TXSouthern"
+  dictionary_2018[119,2] = "EWashingtn"
+  dictionary_2018[140,2] = "MissState"
+  dictionary_2018[142,2] = "LATech"
+  dictionary_2018[144,2] = "GASouthern"
+  dictionary_2018[146,2] = "GATech"
+  dictionary_2018[149,2] = "ETennSt"
+  dictionary_2018[155,2] = "LIUBrooklyn"
+  dictionary_2018[177,2] = "LSU"
+  dictionary_2018[186,2] = "NIowa"
+  dictionary_2018[189,2] = "NIllinois"
+  dictionary_2018[190,2] = "NCWilmgton"
+  dictionary_2018[191,2] = "NColorado"
+  dictionary_2018[192,2] = "NCAsheville"
+  dictionary_2018[193,2] = "NArizona"
+  dictionary_2018[194,2] = "SEMissouri"
+  dictionary_2018[195,2] = "BYU"
+  dictionary_2018[206,2] = "EIllinois"
+  dictionary_2018[207,2] = "NWState"
+  dictionary_2018[209,2] = "TNTech"
+  dictionary_2018[217,2] = "NCCentral"
+  dictionary_2018[260,2] = "VATech"
+  dictionary_2018[263,2] = "LALafayette"
+  dictionary_2018[264,2] = "UMKC"
+  dictionary_2018[268,2] = "StFranPA"
+  dictionary_2018[279,2] = "SELouisiana"
+  dictionary_2018[285,2] = "SCUpstate"
+  dictionary_2018[293,2] = "NCState"
+  dictionary_2018[294,2] = "NCGrnsboro"
+  dictionary_2018[295,2] = "TNMartin"
+  dictionary_2018[307,2] = "SIllinois"
+  dictionary_2018[315,2] = "California"
+  dictionary_2018[323,2] = "WmMary"
+  dictionary_2018[325,2] = "VAMilitary"
+  dictionary_2018[333,2] = "LgBeachSt"
+  dictionary_2018[344,2] = "FDickinson"
+  
+  ## Check all names are included
+  setdiff(rpi_2018$Team, dictionary_2018$b)
+  ## Add RPI Variable
+  sr_2018 = add_rpi_function(rpi_2018,dictionary_2018,sr_2018)
+  
+  ## 2017 RPI
+  dictionary_2017 = create_dictionary_function(sr_2017$School,rpi_2017$Team)
+  dictionary_2017[35,2] = "NKentucky"
+  dictionary_2017[36,2] = "NCAT"
+  dictionary_2017[78,2] = "ILChicago"
+  dictionary_2017[82,2] = "TNState"
+  dictionary_2017[84,2] = "WashState"
+  dictionary_2017[86,2] = "LAMonroe"
+  dictionary_2017[97,2] = "SUtah"
+  dictionary_2017[98,2] = "TXSouthern"
+  dictionary_2017[119,2] = "EWashingtn"
+  dictionary_2017[140,2] = "MissState"
+  dictionary_2017[142,2] = "LATech"
+  dictionary_2017[144,2] = "GASouthern"
+  dictionary_2017[146,2] = "GATech"
+  dictionary_2017[149,2] = "ETennSt"
+  dictionary_2017[155,2] = "LIUBrooklyn"
+  dictionary_2017[177,2] = "LSU"
+  dictionary_2017[186,2] = "NIowa"
+  dictionary_2017[189,2] = "NIllinois"
+  dictionary_2017[190,2] = "NCWilmgton"
+  dictionary_2017[191,2] = "NColorado"
+  dictionary_2017[192,2] = "NCAsheville"
+  dictionary_2017[193,2] = "NArizona"
+  dictionary_2017[194,2] = "SEMissouri"
+  dictionary_2017[195,2] = "BYU"
+  dictionary_2017[206,2] = "EIllinois"
+  dictionary_2017[207,2] = "NWState"
+  dictionary_2017[209,2] = "TNTech"
+  dictionary_2017[217,2] = "NCCentral"
+  dictionary_2017[260,2] = "VATech"
+  dictionary_2017[263,2] = "LALafayette"
+  dictionary_2017[264,2] = "UMKC"
+  dictionary_2017[268,2] = "StFranPA"
+  dictionary_2017[279,2] = "SELouisiana"
+  dictionary_2017[285,2] = "SCUpstate"
+  dictionary_2017[293,2] = "NCState"
+  dictionary_2017[294,2] = "NCGrnsboro"
+  dictionary_2017[295,2] = "TNMartin"
+  dictionary_2017[307,2] = "SIllinois"
+  dictionary_2017[315,2] = "California"
+  dictionary_2017[323,2] = "WmMary"
+  dictionary_2017[325,2] = "VAMilitary"
+  dictionary_2017[333,2] = "LgBeachSt"
+  dictionary_2017[344,2] = "FDickinson"
+  
+  ## Check that all teams are included
+  setdiff(rpi_2017$Team, dictionary_2017$b)
+  ## Add RPI Variable
+  sr_2017 = add_rpi_function(rpi_2017, dictionary_2017, sr_2017)
+  
+  ## 2016 RPI
+  dictionary_2016 = create_dictionary_function(sr_2016$School,rpi_2016$Team)
+  dictionary_2016[35,2] = "NKentucky"
+  dictionary_2016[36,2] = "NCAT"
+  dictionary_2016[78,2] = "ILChicago"
+  dictionary_2016[82,2] = "TNState"
+  dictionary_2016[84,2] = "WashState"
+  dictionary_2016[86,2] = "LAMonroe"
+  dictionary_2016[97,2] = "SUtah"
+  dictionary_2016[98,2] = "TXSouthern"
+  dictionary_2016[119,2] = "EWashingtn"
+  dictionary_2016[140,2] = "MissState"
+  dictionary_2016[142,2] = "LATech"
+  dictionary_2016[144,2] = "GASouthern"
+  dictionary_2016[146,2] = "GATech"
+  dictionary_2016[149,2] = "ETennSt"
+  dictionary_2016[155,2] = "LIUBrooklyn"
+  dictionary_2016[177,2] = "LSU"
+  dictionary_2016[186,2] = "NIowa"
+  dictionary_2016[189,2] = "NIllinois"
+  dictionary_2016[190,2] = "NCWilmgton"
+  dictionary_2016[191,2] = "NColorado"
+  dictionary_2016[192,2] = "NCAsheville"
+  dictionary_2016[193,2] = "NArizona"
+  dictionary_2016[194,2] = "SEMissouri"
+  dictionary_2016[195,2] = "BYU"
+  dictionary_2016[206,2] = "EIllinois"
+  dictionary_2016[207,2] = "NWState"
+  dictionary_2016[209,2] = "TNTech"
+  dictionary_2016[217,2] = "NCCentral"
+  dictionary_2016[260,2] = "VATech"
+  dictionary_2016[263,2] = "LALafayette"
+  dictionary_2016[264,2] = "UMKC"
+  dictionary_2016[268,2] = "StFranPA"
+  dictionary_2016[279,2] = "SELouisiana"
+  dictionary_2016[285,2] = "SCUpstate"
+  dictionary_2016[293,2] = "NCState"
+  dictionary_2016[294,2] = "NCGrnsboro"
+  dictionary_2016[295,2] = "TNMartin"
+  dictionary_2016[307,2] = "SIllinois"
+  dictionary_2016[315,2] = "California"
+  dictionary_2016[323,2] = "WmMary"
+  dictionary_2016[325,2] = "VAMilitary"
+  dictionary_2016[333,2] = "LgBeachSt"
+  dictionary_2016[344,2] = "FDickinson"
+  
+  ## Check that all teams are included
+  setdiff(rpi_2016$Team, dictionary_2016$b)
+  ## Add RPI Variable
+  sr_2016 = add_rpi_function(rpi_2016, dictionary_2016, sr_2016)
+  
+  ## 2015 RPI
+  dictionary_2015 = create_dictionary_function(sr_2015$School,rpi_2015$Team)
+  dictionary_2015[35,2] = "NKentucky"
+  dictionary_2015[36,2] = "NCAT"
+  dictionary_2015[78,2] = "ILChicago"
+  dictionary_2015[82,2] = "TNState"
+  dictionary_2015[84,2] = "WashState"
+  dictionary_2015[86,2] = "LAMonroe"
+  dictionary_2015[97,2] = "SUtah"
+  dictionary_2015[98,2] = "TXSouthern"
+  dictionary_2015[119,2] = "EWashingtn"
+  dictionary_2015[140,2] = "MissState"
+  dictionary_2015[142,2] = "LATech"
+  dictionary_2015[144,2] = "GASouthern"
+  dictionary_2015[146,2] = "GATech"
+  dictionary_2015[149,2] = "ETennSt"
+  dictionary_2015[155,2] = "LIUBrooklyn"
+  dictionary_2015[177,2] = "LSU"
+  dictionary_2015[186,2] = "NIowa"
+  dictionary_2015[189,2] = "NIllinois"
+  dictionary_2015[190,2] = "NCWilmgton"
+  dictionary_2015[191,2] = "NColorado"
+  dictionary_2015[192,2] = "NCAsheville"
+  dictionary_2015[193,2] = "NArizona"
+  dictionary_2015[194,2] = "SEMissouri"
+  dictionary_2015[195,2] = "BYU"
+  dictionary_2015[206,2] = "EIllinois"
+  dictionary_2015[207,2] = "NWState"
+  dictionary_2015[209,2] = "TNTech"
+  dictionary_2015[217,2] = "NCCentral"
+  dictionary_2015[260,2] = "VATech"
+  dictionary_2015[263,2] = "LALafayette"
+  dictionary_2015[264,2] = "UMKC"
+  dictionary_2015[268,2] = "StFranPA"
+  dictionary_2015[279,2] = "SELouisiana"
+  dictionary_2015[285,2] = "SCUpstate"
+  dictionary_2015[293,2] = "NCState"
+  dictionary_2015[294,2] = "NCGrnsboro"
+  dictionary_2015[295,2] = "TNMartin"
+  dictionary_2015[307,2] = "SIllinois"
+  dictionary_2015[315,2] = "California"
+  dictionary_2015[323,2] = "WmMary"
+  dictionary_2015[325,2] = "VAMilitary"
+  dictionary_2015[333,2] = "LgBeachSt"
+  dictionary_2015[344,2] = "FDickinson"
+  
+  ## Check that all teams are included
+  setdiff(rpi_2015$Team, dictionary_2015$b)
+  ## Add RPI Variable
+  sr_2015 = add_rpi_function(rpi_2015, dictionary_2015, sr_2015)
   
   ## Creating NET Ranking (Only Since 2019)
   ## Unable to find numerical values, only ranking
@@ -752,88 +1111,77 @@ library(R.utils)
   
   net_2020 = net_ranking('http://warrennolan.com/basketball/2020/net')
   net_2019 = net_ranking('http://warrennolan.com/basketball/2019/net')
-  net_2018 = rep(NA,351)
-  net_2017 = rep(NA,351)
-  net_2016 = rep(NA,351)
-  net_2015 = rep(NA,351)
   
-  
-  library(stringdist)
-  d <- expand.grid(sos_2019$School,rpi_2019$Team) # Distance matrix in long form
-  names(d) <- c("SOS School","RPI School")
-  d$dist <- stringdist(d$`SOS School`,d$`RPI School`, method="jw") # String edit distance (use your favorite function here)
-  
-  # Greedy assignment heuristic (Your favorite heuristic here)
-  greedyAssign <- function(a,b,d){
-    x <- numeric(length(a)) # assgn variable: 0 for unassigned but assignable, 
-    # 1 for already assigned, -1 for unassigned and unassignable
-    while(any(x==0)){
-      min_d <- min(d[x==0]) # identify closest pair, arbitrarily selecting 1st if multiple pairs
-      a_sel <- a[d==min_d & x==0][1] 
-      b_sel <- b[d==min_d & a == a_sel & x==0][1] 
-      x[a==a_sel & b == b_sel] <- 1
-      x[x==0 & (a==a_sel|b==b_sel)] <- -1
-    }
-    cbind(a=a[x==1],b=b[x==1],d=d[x==1])
-  }
-  
-  dictionary = data.frame(greedyAssign(as.character(d$`SOS School`),as.character(d$`RPI School`),d$dist))
-  dictionary$a = as.character(dictionary$a)
-  dictionary$b = as.character(dictionary$b)
-  dictionary[35,2] = "NKentucky"
-  dictionary[36,2] = "NCAT"
-  dictionary[79,2] = "ILChicago"
-  dictionary[83,2] = "TNState"
-  dictionary[85,2] = "WashState"
-  dictionary[87,2] = "LAMonroe"
-  dictionary[98,2] = "SUtah"
-  dictionary[99,2] = "TXSouthern"
-  dictionary[120,2] = "EWashingtn"
-  dictionary[141,2] = "MissState"
-  dictionary[143,2] = "LATech"
-  dictionary[145,2] = "GASouthern"
-  dictionary[147,2] = "GATech"
-  dictionary[150,2] = "ETennSt"
-  dictionary[156,2] = "LIUBrooklyn"
-  dictionary[178,2] = "LSU"
-  dictionary[187,2] = "NIowa"
-  dictionary[190,2] = "NIllinois"
-  dictionary[191,2] = "NCWilmgton"
-  dictionary[192,2] = "NColorado"
-  dictionary[193,2] = "NCAsheville"
-  dictionary[194,2] = "NArizona"
-  dictionary[195,2] = "SEMissouri"
-  dictionary[196,2] = "BYU"
-  dictionary[207,2] = "EIllinois"
-  dictionary[208,2] = "NWState"
-  dictionary[210,2] = "TNTech"
-  dictionary[219,2] = "NCCentral"
-  dictionary[262,2] = "VATech"
-  dictionary[265,2] = "LALafayette"
-  dictionary[266,2] = "UMKC"
-  dictionary[270,2] = "StFranPA"
-  dictionary[281,2] = "SELouisiana"
-  dictionary[287,2] = "SCUpstate"
-  dictionary[295,2] = "NCState"
-  dictionary[296,2] = "NCGrnsboro"
-  dictionary[297,2] = "TNMartin"
-  dictionary[307,2] = "TXPanAm"
-  dictionary[317,2] = "California"
-  dictionary[325,2] = "WmMary"
-  dictionary[327,2] = "VAMilitary"
-  dictionary[335,2] = "LgBeachSt"
-  dictionary[346,2] = "FDickinson"
-  
-  setdiff(rpi_2019$Team[i], dictionary$b[i])
-  
-  for(i in 1:length(rpi_2019$Team)){
-    for(j in 1:length(dictionary$b)){
-      if(rpi_2019$Team[i] == dictionary$b[j]){
-        rpi_2019$Team[i] = dictionary$a[j]
+      ## Functions to create dictionary for NET source
+      create_dictionary_function_modified = function(x,y){ #x = sr_year$School, y = net_year$Team
+        library(stringdist)
+        distance_chart <- expand.grid(x,y) 
+        names(distance_chart) <- c("SR School","NET School")
+        distance_chart$distance <- stringdist(distance_chart$`SR School`,distance_chart$`NET School`, method="jw")
+        
+        dictionary = data.frame(greedyAssign(as.character(distance_chart$`SR School`),as.character(distance_chart$`NET School`),distance_chart$distance))
+        dictionary$a = as.character(dictionary$a)
+        dictionary$b = as.character(dictionary$b)
+        dictionary
+      } 
+      
+      add_net_function = function(x,y,z){ #x = net_year, y = dictionary_year, z = sr_year
+        for(i in 1:length(x$Team)){
+          for(j in 1:length(y$b)){
+            if(x$Team[i] == y$b[j]){
+              x$Team[i] = y$a[j]
+            }
+          }
+        }
+        
+        x$`NET Rank` = as.character(x$`NET Rank`)
+        
+        `NET Rank` = rep(NA,length(z$School))
+        for(i in 1:length(z$School)){
+          for(j in 1:length(x$Team)){
+            if(z$School[i] == x$Team[j]){
+              `NET Rank`[i] = x$`NET Rank`[j]
+            }
+          }
+        }
+        z = cbind(z,`NET Rank`)
+        z
       }
-    }
-  }
   
-  sos_2019 = cbind(sos_2019, rpi_2019$Rating)
-  colnames(sos_2019)[11] = "RPI"
-
+    ## 2020 NET
+    dictionary_net_2020 = create_dictionary_function_modified(sr_2020$School,net_2020$Team)
+    dictionary_net_2020[39,2] = "UCF"
+    dictionary_net_2020[46,2] = "TCU"
+    dictionary_net_2020[143,2] = "LSU"
+    dictionary_net_2020[149,2] = "UIC"
+    dictionary_net_2020[152,2] = "Loyola-Chicago"
+    dictionary_net_2020[283,2] = "Long Beach State"
+    dictionary_net_2020[306,2] = "Charleston"
+    dictionary_net_2020[308,2] = "UMBC"
+    dictionary_net_2020[312,2] = "California"
+  
+    setdiff(net_2020$Team, dictionary_net_2020$b)
+    sr_2020 = add_net_function(net_2020, dictionary_net_2020, sr_2020)
+    
+    ## 2019 NET
+    dictionary_net_2019 = create_dictionary_function_modified(sr_2019$School,net_2019$Team)
+    dictionary_net_2019[39,2] = "UCF"
+    dictionary_net_2019[46,2] = "TCU"
+    dictionary_net_2019[143,2] = "LSU"
+    dictionary_net_2019[149,2] = "UIC"
+    dictionary_net_2019[152,2] = "Loyola-Chicago"
+    dictionary_net_2019[283,2] = "Long Beach State"
+    dictionary_net_2019[306,2] = "Charleston"
+    dictionary_net_2019[308,2] = "UMBC"
+    dictionary_net_2019[312,2] = "California"
+    
+    setdiff(net_2019$Team, dictionary_net_2019$b)
+    sr_2019 = add_net_function(net_2019, dictionary_net_2019, sr_2019)
+  
+  ## Adding Empty NET Variables to sr_2015 - sr_2018
+  sr_2015$`NET Rank` = rep(NA,351)
+  sr_2016$`NET Rank` = rep(NA,351)
+  sr_2017$`NET Rank` = rep(NA,351)
+  sr_2018$`NET Rank` = rep(NA,351)
+  
+  
