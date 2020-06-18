@@ -170,13 +170,13 @@ library(R.utils)
       length(which(sr_2016$`Conference Champ` == 1))
       length(which(sr_2015$`Conference Champ` == 1))
 
-  ## Last 12 Games Variable
-  sr_2020$`Last 12 Win %` = rep(NA, length(sr_2020$School))
-  sr_2019$`Last 12 Win %` = rep(NA, length(sr_2019$School))
-  sr_2018$`Last 12 Win %` = rep(NA, length(sr_2018$School))
-  sr_2017$`Last 12 Win %` = rep(NA, length(sr_2017$School))
-  sr_2016$`Last 12 Win %` = rep(NA, length(sr_2016$School)) 
-  sr_2015$`Last 12 Win %` = rep(NA, length(sr_2015$School))
+  ## Number of Wins in Last 12 Games Variable
+  sr_2020$`Last 12 Wins` = rep(NA, length(sr_2020$School))
+  sr_2019$`Last 12 Wins` = rep(NA, length(sr_2019$School))
+  sr_2018$`Last 12 Wins` = rep(NA, length(sr_2018$School))
+  sr_2017$`Last 12 Wins` = rep(NA, length(sr_2017$School))
+  sr_2016$`Last 12 Wins` = rep(NA, length(sr_2016$School)) 
+  sr_2015$`Last 12 Wins` = rep(NA, length(sr_2015$School))
 
   last_12_function = function(x){
   url = getURL(x)
@@ -192,8 +192,8 @@ library(R.utils)
     games = games[c(-non_reg),]
   }
   games = games[(length(games$Type)-11):length(games$Type),]
-  winpercentage = round(length(which(games$Result == "W")) / (length(which(games$Result == "W"))+length(which(games$Result == "L"))),3)
-  winpercentage
+  wins = length(which(games$Result == "W")) 
+  wins
   }
 
        ## Checking that same 351 teams from 2015-18
@@ -283,7 +283,7 @@ library(R.utils)
   link = rep(NA, 353)
   for(i in 1:353){
     link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_19[i],"/2019-schedule.html", sep = "")
-    sr_2019$`Last 12 Win %`[i] = last_12_function(link[i])
+    sr_2019$`Last 12 Wins`[i] = last_12_function(link[i])
   } 
   
   schools_20 = c("abilene-christian", "air-force", "akron", "alabama-am", "alabama-birmingham",
@@ -343,7 +343,7 @@ library(R.utils)
   link = rep(NA,353)
   for(i in 1:353){
     link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_20[i],"/2020-schedule.html", sep = "")
-    sr_2020$`Last 12 Win %`[i] = last_12_function(link[i])
+    sr_2020$`Last 12 Wins`[i] = last_12_function(link[i])
   } 
   
   schools_15_18 = c("abilene-christian", "air-force", "akron", "alabama-am", "alabama-birmingham",
@@ -404,33 +404,14 @@ library(R.utils)
   link = rep(NA,351)
   for(i in 1:351){
     link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_15_18[i],"/2018-schedule.html", sep = "")
-    sr_2018$`Last 12 Win %`[i] = last_12_function(link[i])
+    sr_2018$`Last 12 Wins`[i] = last_12_function(link[i])
     link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_15_18[i],"/2017-schedule.html", sep = "")
-    sr_2017$`Last 12 Win %`[i] = last_12_function(link[i])
+    sr_2017$`Last 12 Wins`[i] = last_12_function(link[i])
     link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_15_18[i],"/2016-schedule.html", sep = "")
-    sr_2016$`Last 12 Win %`[i] = last_12_function(link[i])
+    sr_2016$`Last 12 Wins`[i] = last_12_function(link[i])
     link[i] = paste("https://www.sports-reference.com/cbb/schools/",schools_15_18[i],"/2015-schedule.html", sep = "")
-    sr_2015$`Last 12 Win %`[i] = last_12_function(link[i])
+    sr_2015$`Last 12 Wins`[i] = last_12_function(link[i])
   } 
-  
-  ## Adding # of wins in last 12 games variable (perhaps better for analysis)
-  sr_2020$`Last 12 Wins`= rep(NA,353)
-  sr_2019$`Last 12 Wins`= rep(NA,353)
-  sr_2018$`Last 12 Wins`= rep(NA,351)
-  sr_2017$`Last 12 Wins`= rep(NA,351)
-  sr_2016$`Last 12 Wins`= rep(NA,351)
-  sr_2015$`Last 12 Wins`= rep(NA,351)
-  
-  for(i in 1:length(sr_2020$`Last 12 Wins`)){
-    sr_2020$`Last 12 Wins`[i] = round(sr_2020$`Last 12 Win %`[i]*12,0)
-    sr_2019$`Last 12 Wins`[i] = round(sr_2019$`Last 12 Win %`[i]*12,0)
-  }
-  for(i in 1:length(sr_2018$`Last 12 Wins`)){
-    sr_2018$`Last 12 Wins`[i] = round(sr_2018$`Last 12 Win %`[i]*12,0)
-    sr_2017$`Last 12 Wins`[i] = round(sr_2017$`Last 12 Win %`[i]*12,0)
-    sr_2016$`Last 12 Wins`[i] = round(sr_2016$`Last 12 Win %`[i]*12,0)
-    sr_2015$`Last 12 Wins`[i] = round(sr_2015$`Last 12 Win %`[i]*12,0)
-  }
   
   ## Adding variable for conference standings
   conferences = c("aac", "acc", "america-east", "atlantic-10", "atlantic-sun",
@@ -477,34 +458,8 @@ library(R.utils)
       setdiff(sr_2015$School, standings_2015$School)
       standings_2015$School[282] = "SIU Edwardsville"
       standings_2015$School[330] = "VMI"
-      standings_2015$Rk = as.character(standings_2015$Rk)
-
-          ## Creating vector with correct order of team names
-          combination<-as.matrix(expand.grid(standings_2015$School, sr_2015$School))
-          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-          combination1 = combination1[1:351,1]
-          combination1 = as.data.frame(combination1)
-          colnames(combination1)[1] = "School"
-          combination1$School = as.character(combination1$School)
-          finish = rep(NA,length(combination1$School))
-        
-          ## Adding correct rank to correct team name
-          for(i in 1:length(combination1$School)){
-              if(combination1$School[i] == standings_2015$School[i]){
-                finish[i] = standings_2015$Rk[i]
-              }
-              else if(combination1$School[i] != standings_2015$School[i]){
-                finish[i] = standings_2015$Rk[which(adist(combination1$School[i], standings_2015$School) == 0)]
-              }
-            }
-          standings_2015 = cbind(combination1, finish)
-          
-          ## Check that order of team names matches sr_2015
-          ed_dist = rep(NA,351)
-          for(i in 1:length(sr_2015$School)){
-            ed_dist[i] = adist(sr_2015$School[i], standings_2015$School[i])
-          }
-          which(ed_dist != 0)
+      sr_2015 = merge(sr_2015, standings_2015, by = "School")
+      colnames(sr_2015)[5] = "Conference Finish"
       
       ## 2016 standings
       standings_2016 = NULL
@@ -516,34 +471,8 @@ library(R.utils)
       setdiff(sr_2016$School, standings_2016$School)
       standings_2016$School[282] = "SIU Edwardsville"
       standings_2016$School[330] = "VMI"
-      standings_2016$Rk = as.character(standings_2016$Rk)
-      
-          ## Creating vector with correct order of team names
-          combination<-as.matrix(expand.grid(standings_2016$School, sr_2016$School))
-          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-          combination1 = combination1[1:351,1]
-          combination1 = as.data.frame(combination1)
-          colnames(combination1)[1] = "School"
-          combination1$School = as.character(combination1$School)
-          finish = rep(NA,length(combination1$School))
-          
-          ## Adding correct rank to correct team name
-          for(i in 1:length(combination1$School)){
-            if(combination1$School[i] == standings_2016$School[i]){
-              finish[i] = standings_2016$Rk[i]
-            }
-            else if(combination1$School[i] != standings_2016$School[i]){
-              finish[i] = standings_2016$Rk[which(adist(combination1$School[i], standings_2016$School) == 0)]
-            }
-          }
-          standings_2016 = cbind(combination1, finish)
-          
-          ## Check that order of team names matches sr_2016
-          ed_dist = rep(NA,351)
-          for(i in 1:length(sr_2016$School)){
-            ed_dist[i] = adist(sr_2016$School[i], sr_2016$School[i])
-          }
-          which(ed_dist != 0)
+      sr_2016 = merge(sr_2016, standings_2016, by = "School")
+      colnames(sr_2016)[5] = "Conference Finish"
       
       ## 2017 standings
       standings_2017 = NULL
@@ -555,34 +484,8 @@ library(R.utils)
       setdiff(sr_2017$School, standings_2017$School)
       standings_2017$School[282] = "SIU Edwardsville"
       standings_2017$School[330] = "VMI"
-      standings_2017$Rk = as.character(standings_2017$Rk)
-      
-          ## Creating vector with correct order of team names
-          combination<-as.matrix(expand.grid(standings_2017$School, sr_2017$School))
-          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-          combination1 = combination1[1:351,1]
-          combination1 = as.data.frame(combination1)
-          colnames(combination1)[1] = "School"
-          combination1$School = as.character(combination1$School)
-          finish = rep(NA,length(combination1$School))
-          
-          ## Adding correct rank to correct team name
-          for(i in 1:length(combination1$School)){
-            if(combination1$School[i] == standings_2017$School[i]){
-              finish[i] = standings_2017$Rk[i]
-            }
-            else if(combination1$School[i] != standings_2017$School[i]){
-              finish[i] = standings_2017$Rk[which(adist(combination1$School[i], standings_2017$School) == 0)]
-            }
-          }
-          standings_2017 = cbind(combination1, finish)
-          
-          ## Check that order of team names matches sr_2017
-          ed_dist = rep(NA,351)
-          for(i in 1:length(sr_2017$School)){
-            ed_dist[i] = adist(sr_2017$School[i], standings_2017$School[i])
-          }
-          which(ed_dist != 0)
+      sr_2017 = merge(sr_2017, standings_2017, by = "School")
+      colnames(sr_2017)[5] = "Conference Finish"
       
       ## 2018 standings
       standings_2018 = NULL
@@ -594,34 +497,8 @@ library(R.utils)
       setdiff(sr_2018$School, standings_2018$School)
       standings_2018$School[282] = "SIU Edwardsville"
       standings_2018$School[330] = "VMI"
-      standings_2018$Rk = as.character(standings_2018$Rk)
-      
-          ## Creating vector with correct order of team names
-          combination<-as.matrix(expand.grid(standings_2018$School, sr_2018$School))
-          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-          combination1 = combination1[1:351,1]
-          combination1 = as.data.frame(combination1)
-          colnames(combination1)[1] = "School"
-          combination1$School = as.character(combination1$School)
-          finish = rep(NA,length(combination1$School))
-          
-          ## Adding correct rank to correct team name
-          for(i in 1:length(combination1$School)){
-            if(combination1$School[i] == standings_2018$School[i]){
-              finish[i] = standings_2018$Rk[i]
-            }
-            else if(combination1$School[i] != standings_2018$School[i]){
-              finish[i] = standings_2018$Rk[which(adist(combination1$School[i], standings_2018$School) == 0)]
-            }
-          }
-          standings_2018 = cbind(combination1, finish)
-          
-          ## Checking that order of team names matches sr_2018
-          ed_dist = rep(NA,351)
-          for(i in 1:length(sr_2018$School)){
-            ed_dist[i] = adist(sr_2018$School[i], standings_2018$School[i])
-          }
-          which(ed_dist != 0)
+      sr_2018 = merge(sr_2018, standings_2018, by = "School")
+      colnames(sr_2018)[5] = "Conference Finish"
       
       ## 2019 standings
       standings_2019 = NULL
@@ -633,35 +510,10 @@ library(R.utils)
       setdiff(sr_2019$School, standings_2019$School)
       standings_2019$School[284] = "SIU Edwardsville"
       standings_2019$School[332] = "VMI"
-      standings_2019$Rk = as.character(standings_2019$Rk)
+      sr_2019 = merge(sr_2019, standings_2019, by = "School")
+      colnames(sr_2019)[5] = "Conference Finish"
       
-          ## Creating vector with correct order of team names
-          combination<-as.matrix(expand.grid(standings_2019$School, sr_2019$School))
-          combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-          combination1 = combination1[1:353,1]
-          combination1 = as.data.frame(combination1)
-          colnames(combination1)[1] = "School"
-          combination1$School = as.character(combination1$School)
-          finish = rep(NA,length(combination1$School))
-          
-          ## Adding correct rank to correct team name
-          for(i in 1:length(combination1$School)){
-            if(combination1$School[i] == standings_2019$School[i]){
-              finish[i] = standings_2019$Rk[i]
-            }
-            else if(combination1$School[i] != standings_2019$School[i]){
-              finish[i] = standings_2019$Rk[which(adist(combination1$School[i], standings_2019$School) == 0)]
-            }
-          }
-          standings_2019 = cbind(combination1, finish)
-          
-          ## Check that order of team names matches sr_2019
-          ed_dist = rep(NA,353)
-          for(i in 1:length(sr_2019$School)){
-            ed_dist[i] = adist(sr_2019$School[i], standings_2019$School[i])
-          }
-          which(ed_dist != 0)
-      
+      ## 2020 Standings
       standings_2020 = NULL
       for(i in 1:32){
         champ = conference_standings_url_function(link_2020[i])
@@ -671,50 +523,9 @@ library(R.utils)
       setdiff(sr_2020$School, standings_2020$School)
       standings_2020$School[284] = "SIU Edwardsville"
       standings_2020$School[332] = "VMI"
-      standings_2020$Rk = as.character(standings_2020$Rk)
-      
-      ## Creating vector with correct order of team names
-      combination<-as.matrix(expand.grid(standings_2020$School, sr_2020$School))
-      combination1 = as.matrix(combination[combination[,1] == combination[,2]])
-      combination1 = combination1[1:353,1]
-      combination1 = as.data.frame(combination1)
-      colnames(combination1)[1] = "School"
-      combination1$School = as.character(combination1$School)
-      finish = rep(NA,length(combination1$School))
-      
-      ## Adding correct rank to correct team name
-      for(i in 1:length(combination1$School)){
-        if(combination1$School[i] == standings_2020$School[i]){
-          finish[i] = standings_2020$Rk[i]
-        }
-        else if(combination1$School[i] != standings_2020$School[i]){
-          finish[i] = standings_2020$Rk[which(adist(combination1$School[i], standings_2020$School) == 0)]
-        }
-      }
-      standings_2020 = cbind(combination1, finish)
-      
-      ## Check that order of team names matches sos_2020
-      ed_dist = rep(NA,353)
-      for(i in 1:length(sr_2020$School)){
-        ed_dist[i] = adist(sr_2020$School[i], standings_2020$School[i])
-      }
-      which(ed_dist != 0)
-  
-  sr_2015 = cbind(sr_2015,standings_2015$finish)
-  colnames(sr_2015)[6] = "Conference Finish"
-  sr_2016 = cbind(sr_2016,standings_2016$finish)
-  colnames(sr_2016)[6] = "Conference Finish"
-  sr_2017 = cbind(sr_2017,standings_2017$finish)
-  colnames(sr_2017)[6] = "Conference Finish"
-  sr_2018 = cbind(sr_2018,standings_2018$finish)
-  colnames(sr_2018)[6] = "Conference Finish"
-  sr_2019 = cbind(sr_2019,standings_2019$finish)
-  colnames(sr_2019)[6] = "Conference Finish"
-  sr_2020 = cbind(sr_2020,standings_2020$finish)
-  colnames(sr_2020)[6] = "Conference Finish"
-  
-## Variables NOT yet added to either dataset
-  
+      sr_2020 = merge(sr_2020, standings_2020, by = "School")
+      colnames(sr_2020)[5] = "Conference Finish"
+    
   ## Creating RPI 
   rpi_function = function(x){
     url = getURL(x)
@@ -728,7 +539,7 @@ library(R.utils)
       rpi$Team[i] = gsub("\\W", "", rpi$Team[i])
     }
     
-    rpi = rpi[,c(1,2,3)]
+    rpi = rpi[,c(1,2)]
     rpi = rpi[order(rpi$Team),]
   }
   
@@ -754,7 +565,7 @@ library(R.utils)
         cbind(a=a[x==1],b=b[x==1],d=d[x==1])
       }
       
-      create_dictionary_function = function(x,y){ #x = sr_year$School, y = rpi_year$Team
+      create_rpi_dictionary_function = function(x,y){ #x = sr_year$School, y = rpi_year$Team
         library(stringdist)
         distance_chart <- expand.grid(x,y) 
         names(distance_chart) <- c("SR School","RPI School")
@@ -766,7 +577,7 @@ library(R.utils)
         dictionary
       } 
       
-      add_rpi_function = function(x,y,z){ #x = rpi_year, y = dictionary_year, z = sr_year
+      order_team_names_function = function(x,y,z){ #x = rpi_year/net_year/data_year, y = dictionary_rpi_year/dictionary_net_year/dictionary_data_year, z = sr_year
         for(i in 1:length(x$Team)){
           for(j in 1:length(y$b)){
             if(x$Team[i] == y$b[j]){
@@ -774,332 +585,188 @@ library(R.utils)
             }
           }
         }
-        
-        x$Rank = as.character(x$Rank)
-        x$Rating = as.character(x$Rating)
-        
-        RPI = rep(NA,length(z$School))
-        `RPI Rank` = rep(NA,length(z$School))
-        for(i in 1:length(z$School)){
-          for(j in 1:length(x$Team)){
-            if(z$School[i] == x$Team[j]){
-              RPI[i] = x$Rating[j]
-              `RPI Rank`[i] = x$Rank[j]
-            }
-          }
-        }
-        z = cbind(z,RPI,`RPI Rank`)
-        z
+        x
       }
       
   ## 2020 RPI
-  dictionary_2020 = create_dictionary_function(sr_2020$School,rpi_2020$Team)
-  dictionary_2020[35,2] = "ETennSt"
-  dictionary_2020[36,2] = "NCAT"
-  dictionary_2020[79,2] = "ILChicago"
-  dictionary_2020[83,2] = "TNState"
-  dictionary_2020[85,2] = "WashState"
-  dictionary_2020[87,2] = "LAMonroe"
-  dictionary_2020[98,2] = "SUtah"
-  dictionary_2020[99,2] = "TXSouthern"
-  dictionary_2020[120,2] = "EWashingtn"
-  dictionary_2020[141,2] = "MissState"
-  dictionary_2020[143,2] = "LATech"
-  dictionary_2020[145,2] = "GASouthern"
-  dictionary_2020[147,2] = "GATech"
-  dictionary_2020[156,2] = "NKentucky"
-  dictionary_2020[179,2] = "LSU"
-  dictionary_2020[188,2] = "NIowa"
-  dictionary_2020[191,2] = "NIllinois"
-  dictionary_2020[192,2] = "NCWilmgton"
-  dictionary_2020[193,2] = "NColorado"
-  dictionary_2020[194,2] = "NCAsheville"
-  dictionary_2020[195,2] = "NArizona"
-  dictionary_2020[196,2] = "SEMissouri"
-  dictionary_2020[197,2] = "BYU"
-  dictionary_2020[208,2] = "EIllinois"
-  dictionary_2020[209,2] = "NWState"
-  dictionary_2020[211,2] = "TNTech"
-  dictionary_2020[220,2] = "NCCentral"
-  dictionary_2020[262,2] = "VATech"
-  dictionary_2020[265,2] = "LALafayette"
-  dictionary_2020[266,2] = "UMKC"
-  dictionary_2020[270,2] = "StFranPA"
-  dictionary_2020[281,2] = "SELouisiana"
-  dictionary_2020[287,2] = "SCUpstate"
-  dictionary_2020[295,2] = "NCState"
-  dictionary_2020[296,2] = "NCGrnsboro"
-  dictionary_2020[297,2] = "TNMartin"
-  dictionary_2020[309,2] = "SIllinois"
-  dictionary_2020[317,2] = "California"
-  dictionary_2020[325,2] = "WmMary"
-  dictionary_2020[327,2] = "VAMilitary"
-  dictionary_2020[335,2] = "LgBeachSt"
-  dictionary_2020[346,2] = "FDickinson"
+  dictionary_rpi_2020 = create_rpi_dictionary_function(sr_2020$School,rpi_2020$Team)
+  dictionary_rpi_2020[35,2] = "ETennSt"
+  dictionary_rpi_2020[36,2] = "NCAT"
+  dictionary_rpi_2020[79,2] = "ILChicago"
+  dictionary_rpi_2020[83,2] = "TNState"
+  dictionary_rpi_2020[85,2] = "WashState"
+  dictionary_rpi_2020[87,2] = "LAMonroe"
+  dictionary_rpi_2020[98,2] = "SUtah"
+  dictionary_rpi_2020[99,2] = "TXSouthern"
+  dictionary_rpi_2020[120,2] = "EWashingtn"
+  dictionary_rpi_2020[141,2] = "MissState"
+  dictionary_rpi_2020[143,2] = "LATech"
+  dictionary_rpi_2020[145,2] = "GASouthern"
+  dictionary_rpi_2020[147,2] = "GATech"
+  dictionary_rpi_2020[156,2] = "NKentucky"
+  dictionary_rpi_2020[179,2] = "LSU"
+  dictionary_rpi_2020[188,2] = "NIowa"
+  dictionary_rpi_2020[191,2] = "NIllinois"
+  dictionary_rpi_2020[192,2] = "NCWilmgton"
+  dictionary_rpi_2020[193,2] = "NColorado"
+  dictionary_rpi_2020[194,2] = "NCAsheville"
+  dictionary_rpi_2020[195,2] = "NArizona"
+  dictionary_rpi_2020[196,2] = "SEMissouri"
+  dictionary_rpi_2020[197,2] = "BYU"
+  dictionary_rpi_2020[208,2] = "EIllinois"
+  dictionary_rpi_2020[209,2] = "NWState"
+  dictionary_rpi_2020[211,2] = "TNTech"
+  dictionary_rpi_2020[220,2] = "NCCentral"
+  dictionary_rpi_2020[262,2] = "VATech"
+  dictionary_rpi_2020[265,2] = "LALafayette"
+  dictionary_rpi_2020[266,2] = "UMKC"
+  dictionary_rpi_2020[270,2] = "StFranPA"
+  dictionary_rpi_2020[281,2] = "SELouisiana"
+  dictionary_rpi_2020[287,2] = "SCUpstate"
+  dictionary_rpi_2020[295,2] = "NCState"
+  dictionary_rpi_2020[296,2] = "NCGrnsboro"
+  dictionary_rpi_2020[297,2] = "TNMartin"
+  dictionary_rpi_2020[309,2] = "SIllinois"
+  dictionary_rpi_2020[317,2] = "California"
+  dictionary_rpi_2020[325,2] = "WmMary"
+  dictionary_rpi_2020[327,2] = "VAMilitary"
+  dictionary_rpi_2020[335,2] = "LgBeachSt"
+  dictionary_rpi_2020[346,2] = "FDickinson"
   
       ## Check all names are included
-      setdiff(rpi_2020$Team, dictionary_2020$b)
-      ## Add RPI Variable
-      sr_2020 = add_rpi_function(rpi_2020,dictionary_2020,sr_2020)
+      setdiff(rpi_2020$Team, dictionary_rpi_2020$b)
+      ## Merge data
+      rpi_2020 = order_team_names_function(rpi_2020,dictionary_rpi_2020,sr_2020)
+      colnames(rpi_2020)[2] = "School"
+      sr_2020 = merge(sr_2020,rpi_2020, by = "School")
+      colnames(sr_2020)[6] = "RPI Rank"
+      
   
   ## 2019 RPI
-  dictionary_2019 = create_dictionary_function(sr_2019$School,rpi_2019$Team)
-  dictionary_2019[35,2] = "NKentucky"
-  dictionary_2019[36,2] = "NCAT"
-  dictionary_2019[79,2] = "ILChicago"
-  dictionary_2019[83,2] = "TNState"
-  dictionary_2019[85,2] = "WashState"
-  dictionary_2019[87,2] = "LAMonroe"
-  dictionary_2019[98,2] = "SUtah"
-  dictionary_2019[99,2] = "TXSouthern"
-  dictionary_2019[120,2] = "EWashingtn"
-  dictionary_2019[141,2] = "MissState"
-  dictionary_2019[143,2] = "LATech"
-  dictionary_2019[145,2] = "GASouthern"
-  dictionary_2019[147,2] = "GATech"
-  dictionary_2019[150,2] = "ETennSt"
-  dictionary_2019[156,2] = "LIUBrooklyn"
-  dictionary_2019[178,2] = "LSU"
-  dictionary_2019[187,2] = "NIowa"
-  dictionary_2019[190,2] = "NIllinois"
-  dictionary_2019[191,2] = "NCWilmgton"
-  dictionary_2019[192,2] = "NColorado"
-  dictionary_2019[193,2] = "NCAsheville"
-  dictionary_2019[194,2] = "NArizona"
-  dictionary_2019[195,2] = "SEMissouri"
-  dictionary_2019[196,2] = "BYU"
-  dictionary_2019[207,2] = "EIllinois"
-  dictionary_2019[208,2] = "NWState"
-  dictionary_2019[210,2] = "TNTech"
-  dictionary_2019[219,2] = "NCCentral"
-  dictionary_2019[262,2] = "VATech"
-  dictionary_2019[265,2] = "LALafayette"
-  dictionary_2019[266,2] = "UMKC"
-  dictionary_2019[270,2] = "StFranPA"
-  dictionary_2019[281,2] = "SELouisiana"
-  dictionary_2019[287,2] = "SCUpstate"
-  dictionary_2019[295,2] = "NCState"
-  dictionary_2019[296,2] = "NCGrnsboro"
-  dictionary_2019[297,2] = "TNMartin"
-  dictionary_2019[307,2] = "TXPanAm"
-  dictionary_2019[309,2] = "SIllinois"
-  dictionary_2019[317,2] = "California"
-  dictionary_2019[325,2] = "WmMary"
-  dictionary_2019[327,2] = "VAMilitary"
-  dictionary_2019[335,2] = "LgBeachSt"
-  dictionary_2019[346,2] = "FDickinson"
+  dictionary_rpi_2019 = create_rpi_dictionary_function(sr_2019$School,rpi_2019$Team)
+  dictionary_rpi_2019[35,2] = "NKentucky"
+  dictionary_rpi_2019[36,2] = "NCAT"
+  dictionary_rpi_2019[79,2] = "ILChicago"
+  dictionary_rpi_2019[83,2] = "TNState"
+  dictionary_rpi_2019[85,2] = "WashState"
+  dictionary_rpi_2019[87,2] = "LAMonroe"
+  dictionary_rpi_2019[98,2] = "SUtah"
+  dictionary_rpi_2019[99,2] = "TXSouthern"
+  dictionary_rpi_2019[120,2] = "EWashingtn"
+  dictionary_rpi_2019[141,2] = "MissState"
+  dictionary_rpi_2019[143,2] = "LATech"
+  dictionary_rpi_2019[145,2] = "GASouthern"
+  dictionary_rpi_2019[147,2] = "GATech"
+  dictionary_rpi_2019[150,2] = "ETennSt"
+  dictionary_rpi_2019[156,2] = "LIUBrooklyn"
+  dictionary_rpi_2019[178,2] = "LSU"
+  dictionary_rpi_2019[187,2] = "NIowa"
+  dictionary_rpi_2019[190,2] = "NIllinois"
+  dictionary_rpi_2019[191,2] = "NCWilmgton"
+  dictionary_rpi_2019[192,2] = "NColorado"
+  dictionary_rpi_2019[193,2] = "NCAsheville"
+  dictionary_rpi_2019[194,2] = "NArizona"
+  dictionary_rpi_2019[195,2] = "SEMissouri"
+  dictionary_rpi_2019[196,2] = "BYU"
+  dictionary_rpi_2019[207,2] = "EIllinois"
+  dictionary_rpi_2019[208,2] = "NWState"
+  dictionary_rpi_2019[210,2] = "TNTech"
+  dictionary_rpi_2019[219,2] = "NCCentral"
+  dictionary_rpi_2019[262,2] = "VATech"
+  dictionary_rpi_2019[265,2] = "LALafayette"
+  dictionary_rpi_2019[266,2] = "UMKC"
+  dictionary_rpi_2019[270,2] = "StFranPA"
+  dictionary_rpi_2019[281,2] = "SELouisiana"
+  dictionary_rpi_2019[287,2] = "SCUpstate"
+  dictionary_rpi_2019[295,2] = "NCState"
+  dictionary_rpi_2019[296,2] = "NCGrnsboro"
+  dictionary_rpi_2019[297,2] = "TNMartin"
+  dictionary_rpi_2019[307,2] = "TXPanAm"
+  dictionary_rpi_2019[309,2] = "SIllinois"
+  dictionary_rpi_2019[317,2] = "California"
+  dictionary_rpi_2019[325,2] = "WmMary"
+  dictionary_rpi_2019[327,2] = "VAMilitary"
+  dictionary_rpi_2019[335,2] = "LgBeachSt"
+  dictionary_rpi_2019[346,2] = "FDickinson"
   
       ## Check all names are included
-      setdiff(rpi_2019$Team, dictionary_2019$b)
-      ## Add RPI Variable
-      sr_2019 = add_rpi_function(rpi_2019, dictionary_2019, sr_2019)
+      setdiff(rpi_2019$Team, dictionary_rpi_2019$b)
+      ## Merge data
+      rpi_2019 = order_team_names_function(rpi_2019,dictionary_rpi_2019,sr_2019)
+      colnames(rpi_2019)[2] = "School"
+      sr_2019 = merge(sr_2019,rpi_2019, by = "School")
+      colnames(sr_2019)[6] = "RPI Rank"
   
-  ## 2018 RPI
-  dictionary_2018 = create_dictionary_function(sr_2018$School,rpi_2018$Team)
-  dictionary_2018[35,2] = "NKentucky"
-  dictionary_2018[36,2] = "NCAT"
-  dictionary_2018[78,2] = "ILChicago"
-  dictionary_2018[82,2] = "TNState"
-  dictionary_2018[84,2] = "WashState"
-  dictionary_2018[86,2] = "LAMonroe"
-  dictionary_2018[97,2] = "SUtah"
-  dictionary_2018[98,2] = "TXSouthern"
-  dictionary_2018[119,2] = "EWashingtn"
-  dictionary_2018[140,2] = "MissState"
-  dictionary_2018[142,2] = "LATech"
-  dictionary_2018[144,2] = "GASouthern"
-  dictionary_2018[146,2] = "GATech"
-  dictionary_2018[149,2] = "ETennSt"
-  dictionary_2018[155,2] = "LIUBrooklyn"
-  dictionary_2018[177,2] = "LSU"
-  dictionary_2018[186,2] = "NIowa"
-  dictionary_2018[189,2] = "NIllinois"
-  dictionary_2018[190,2] = "NCWilmgton"
-  dictionary_2018[191,2] = "NColorado"
-  dictionary_2018[192,2] = "NCAsheville"
-  dictionary_2018[193,2] = "NArizona"
-  dictionary_2018[194,2] = "SEMissouri"
-  dictionary_2018[195,2] = "BYU"
-  dictionary_2018[206,2] = "EIllinois"
-  dictionary_2018[207,2] = "NWState"
-  dictionary_2018[209,2] = "TNTech"
-  dictionary_2018[217,2] = "NCCentral"
-  dictionary_2018[260,2] = "VATech"
-  dictionary_2018[263,2] = "LALafayette"
-  dictionary_2018[264,2] = "UMKC"
-  dictionary_2018[268,2] = "StFranPA"
-  dictionary_2018[279,2] = "SELouisiana"
-  dictionary_2018[285,2] = "SCUpstate"
-  dictionary_2018[293,2] = "NCState"
-  dictionary_2018[294,2] = "NCGrnsboro"
-  dictionary_2018[295,2] = "TNMartin"
-  dictionary_2018[307,2] = "SIllinois"
-  dictionary_2018[315,2] = "California"
-  dictionary_2018[323,2] = "WmMary"
-  dictionary_2018[325,2] = "VAMilitary"
-  dictionary_2018[333,2] = "LgBeachSt"
-  dictionary_2018[344,2] = "FDickinson"
+  ## 2015-18 RPI - Teams are the same, will use one dictionary
+  dictionary_rpi_2015_2018 = create_rpi_dictionary_function(sr_2018$School,rpi_2018$Team)
+  dictionary_rpi_2015_2018[35,2] = "NKentucky"
+  dictionary_rpi_2015_2018[36,2] = "NCAT"
+  dictionary_rpi_2015_2018[78,2] = "ILChicago"
+  dictionary_rpi_2015_2018[82,2] = "TNState"
+  dictionary_rpi_2015_2018[84,2] = "WashState"
+  dictionary_rpi_2015_2018[86,2] = "LAMonroe"
+  dictionary_rpi_2015_2018[97,2] = "SUtah"
+  dictionary_rpi_2015_2018[98,2] = "TXSouthern"
+  dictionary_rpi_2015_2018[119,2] = "EWashingtn"
+  dictionary_rpi_2015_2018[140,2] = "MissState"
+  dictionary_rpi_2015_2018[142,2] = "LATech"
+  dictionary_rpi_2015_2018[144,2] = "GASouthern"
+  dictionary_rpi_2015_2018[146,2] = "GATech"
+  dictionary_rpi_2015_2018[149,2] = "ETennSt"
+  dictionary_rpi_2015_2018[155,2] = "LIUBrooklyn"
+  dictionary_rpi_2015_2018[177,2] = "LSU"
+  dictionary_rpi_2015_2018[186,2] = "NIowa"
+  dictionary_rpi_2015_2018[189,2] = "NIllinois"
+  dictionary_rpi_2015_2018[190,2] = "NCWilmgton"
+  dictionary_rpi_2015_2018[191,2] = "NColorado"
+  dictionary_rpi_2015_2018[192,2] = "NCAsheville"
+  dictionary_rpi_2015_2018[193,2] = "NArizona"
+  dictionary_rpi_2015_2018[194,2] = "SEMissouri"
+  dictionary_rpi_2015_2018[195,2] = "BYU"
+  dictionary_rpi_2015_2018[206,2] = "EIllinois"
+  dictionary_rpi_2015_2018[207,2] = "NWState"
+  dictionary_rpi_2015_2018[209,2] = "TNTech"
+  dictionary_rpi_2015_2018[217,2] = "NCCentral"
+  dictionary_rpi_2015_2018[260,2] = "VATech"
+  dictionary_rpi_2015_2018[263,2] = "LALafayette"
+  dictionary_rpi_2015_2018[264,2] = "UMKC"
+  dictionary_rpi_2015_2018[268,2] = "StFranPA"
+  dictionary_rpi_2015_2018[279,2] = "SELouisiana"
+  dictionary_rpi_2015_2018[285,2] = "SCUpstate"
+  dictionary_rpi_2015_2018[293,2] = "NCState"
+  dictionary_rpi_2015_2018[294,2] = "NCGrnsboro"
+  dictionary_rpi_2015_2018[295,2] = "TNMartin"
+  dictionary_rpi_2015_2018[307,2] = "SIllinois"
+  dictionary_rpi_2015_2018[315,2] = "California"
+  dictionary_rpi_2015_2018[323,2] = "WmMary"
+  dictionary_rpi_2015_2018[325,2] = "VAMilitary"
+  dictionary_rpi_2015_2018[333,2] = "LgBeachSt"
+  dictionary_rpi_2015_2018[344,2] = "FDickinson"
   
   ## Check all names are included
-  setdiff(rpi_2018$Team, dictionary_2018$b)
-  ## Add RPI Variable
-  sr_2018 = add_rpi_function(rpi_2018,dictionary_2018,sr_2018)
-  
-  ## 2017 RPI
-  dictionary_2017 = create_dictionary_function(sr_2017$School,rpi_2017$Team)
-  dictionary_2017[35,2] = "NKentucky"
-  dictionary_2017[36,2] = "NCAT"
-  dictionary_2017[78,2] = "ILChicago"
-  dictionary_2017[82,2] = "TNState"
-  dictionary_2017[84,2] = "WashState"
-  dictionary_2017[86,2] = "LAMonroe"
-  dictionary_2017[97,2] = "SUtah"
-  dictionary_2017[98,2] = "TXSouthern"
-  dictionary_2017[119,2] = "EWashingtn"
-  dictionary_2017[140,2] = "MissState"
-  dictionary_2017[142,2] = "LATech"
-  dictionary_2017[144,2] = "GASouthern"
-  dictionary_2017[146,2] = "GATech"
-  dictionary_2017[149,2] = "ETennSt"
-  dictionary_2017[155,2] = "LIUBrooklyn"
-  dictionary_2017[177,2] = "LSU"
-  dictionary_2017[186,2] = "NIowa"
-  dictionary_2017[189,2] = "NIllinois"
-  dictionary_2017[190,2] = "NCWilmgton"
-  dictionary_2017[191,2] = "NColorado"
-  dictionary_2017[192,2] = "NCAsheville"
-  dictionary_2017[193,2] = "NArizona"
-  dictionary_2017[194,2] = "SEMissouri"
-  dictionary_2017[195,2] = "BYU"
-  dictionary_2017[206,2] = "EIllinois"
-  dictionary_2017[207,2] = "NWState"
-  dictionary_2017[209,2] = "TNTech"
-  dictionary_2017[217,2] = "NCCentral"
-  dictionary_2017[260,2] = "VATech"
-  dictionary_2017[263,2] = "LALafayette"
-  dictionary_2017[264,2] = "UMKC"
-  dictionary_2017[268,2] = "StFranPA"
-  dictionary_2017[279,2] = "SELouisiana"
-  dictionary_2017[285,2] = "SCUpstate"
-  dictionary_2017[293,2] = "NCState"
-  dictionary_2017[294,2] = "NCGrnsboro"
-  dictionary_2017[295,2] = "TNMartin"
-  dictionary_2017[307,2] = "SIllinois"
-  dictionary_2017[315,2] = "California"
-  dictionary_2017[323,2] = "WmMary"
-  dictionary_2017[325,2] = "VAMilitary"
-  dictionary_2017[333,2] = "LgBeachSt"
-  dictionary_2017[344,2] = "FDickinson"
-  
-  ## Check that all teams are included
-  setdiff(rpi_2017$Team, dictionary_2017$b)
-  ## Add RPI Variable
-  sr_2017 = add_rpi_function(rpi_2017, dictionary_2017, sr_2017)
-  
-  ## 2016 RPI
-  dictionary_2016 = create_dictionary_function(sr_2016$School,rpi_2016$Team)
-  dictionary_2016[35,2] = "NKentucky"
-  dictionary_2016[36,2] = "NCAT"
-  dictionary_2016[78,2] = "ILChicago"
-  dictionary_2016[82,2] = "TNState"
-  dictionary_2016[84,2] = "WashState"
-  dictionary_2016[86,2] = "LAMonroe"
-  dictionary_2016[97,2] = "SUtah"
-  dictionary_2016[98,2] = "TXSouthern"
-  dictionary_2016[119,2] = "EWashingtn"
-  dictionary_2016[140,2] = "MissState"
-  dictionary_2016[142,2] = "LATech"
-  dictionary_2016[144,2] = "GASouthern"
-  dictionary_2016[146,2] = "GATech"
-  dictionary_2016[149,2] = "ETennSt"
-  dictionary_2016[155,2] = "LIUBrooklyn"
-  dictionary_2016[177,2] = "LSU"
-  dictionary_2016[186,2] = "NIowa"
-  dictionary_2016[189,2] = "NIllinois"
-  dictionary_2016[190,2] = "NCWilmgton"
-  dictionary_2016[191,2] = "NColorado"
-  dictionary_2016[192,2] = "NCAsheville"
-  dictionary_2016[193,2] = "NArizona"
-  dictionary_2016[194,2] = "SEMissouri"
-  dictionary_2016[195,2] = "BYU"
-  dictionary_2016[206,2] = "EIllinois"
-  dictionary_2016[207,2] = "NWState"
-  dictionary_2016[209,2] = "TNTech"
-  dictionary_2016[217,2] = "NCCentral"
-  dictionary_2016[260,2] = "VATech"
-  dictionary_2016[263,2] = "LALafayette"
-  dictionary_2016[264,2] = "UMKC"
-  dictionary_2016[268,2] = "StFranPA"
-  dictionary_2016[279,2] = "SELouisiana"
-  dictionary_2016[285,2] = "SCUpstate"
-  dictionary_2016[293,2] = "NCState"
-  dictionary_2016[294,2] = "NCGrnsboro"
-  dictionary_2016[295,2] = "TNMartin"
-  dictionary_2016[307,2] = "SIllinois"
-  dictionary_2016[315,2] = "California"
-  dictionary_2016[323,2] = "WmMary"
-  dictionary_2016[325,2] = "VAMilitary"
-  dictionary_2016[333,2] = "LgBeachSt"
-  dictionary_2016[344,2] = "FDickinson"
-  
-  ## Check that all teams are included
-  setdiff(rpi_2016$Team, dictionary_2016$b)
-  ## Add RPI Variable
-  sr_2016 = add_rpi_function(rpi_2016, dictionary_2016, sr_2016)
-  
-  ## 2015 RPI
-  dictionary_2015 = create_dictionary_function(sr_2015$School,rpi_2015$Team)
-  dictionary_2015[35,2] = "NKentucky"
-  dictionary_2015[36,2] = "NCAT"
-  dictionary_2015[78,2] = "ILChicago"
-  dictionary_2015[82,2] = "TNState"
-  dictionary_2015[84,2] = "WashState"
-  dictionary_2015[86,2] = "LAMonroe"
-  dictionary_2015[97,2] = "SUtah"
-  dictionary_2015[98,2] = "TXSouthern"
-  dictionary_2015[119,2] = "EWashingtn"
-  dictionary_2015[140,2] = "MissState"
-  dictionary_2015[142,2] = "LATech"
-  dictionary_2015[144,2] = "GASouthern"
-  dictionary_2015[146,2] = "GATech"
-  dictionary_2015[149,2] = "ETennSt"
-  dictionary_2015[155,2] = "LIUBrooklyn"
-  dictionary_2015[177,2] = "LSU"
-  dictionary_2015[186,2] = "NIowa"
-  dictionary_2015[189,2] = "NIllinois"
-  dictionary_2015[190,2] = "NCWilmgton"
-  dictionary_2015[191,2] = "NColorado"
-  dictionary_2015[192,2] = "NCAsheville"
-  dictionary_2015[193,2] = "NArizona"
-  dictionary_2015[194,2] = "SEMissouri"
-  dictionary_2015[195,2] = "BYU"
-  dictionary_2015[206,2] = "EIllinois"
-  dictionary_2015[207,2] = "NWState"
-  dictionary_2015[209,2] = "TNTech"
-  dictionary_2015[217,2] = "NCCentral"
-  dictionary_2015[260,2] = "VATech"
-  dictionary_2015[263,2] = "LALafayette"
-  dictionary_2015[264,2] = "UMKC"
-  dictionary_2015[268,2] = "StFranPA"
-  dictionary_2015[279,2] = "SELouisiana"
-  dictionary_2015[285,2] = "SCUpstate"
-  dictionary_2015[293,2] = "NCState"
-  dictionary_2015[294,2] = "NCGrnsboro"
-  dictionary_2015[295,2] = "TNMartin"
-  dictionary_2015[307,2] = "SIllinois"
-  dictionary_2015[315,2] = "California"
-  dictionary_2015[323,2] = "WmMary"
-  dictionary_2015[325,2] = "VAMilitary"
-  dictionary_2015[333,2] = "LgBeachSt"
-  dictionary_2015[344,2] = "FDickinson"
-  
-  ## Check that all teams are included
-  setdiff(rpi_2015$Team, dictionary_2015$b)
-  ## Add RPI Variable
-  sr_2015 = add_rpi_function(rpi_2015, dictionary_2015, sr_2015)
+  setdiff(rpi_2018$Team, dictionary_rpi_2015_2018$b)
+  setdiff(rpi_2017$Team, dictionary_rpi_2015_2018$b)
+  setdiff(rpi_2016$Team, dictionary_rpi_2015_2018$b)
+  setdiff(rpi_2015$Team, dictionary_rpi_2015_2018$b)
+  ## Merge data
+  rpi_2018 = order_team_names_function(rpi_2018,dictionary_rpi_2015_2018,sr_2018)
+  rpi_2017 = order_team_names_function(rpi_2017,dictionary_rpi_2015_2018,sr_2017)
+  rpi_2016 = order_team_names_function(rpi_2016,dictionary_rpi_2015_2018,sr_2016)
+  rpi_2015 = order_team_names_function(rpi_2015,dictionary_rpi_2015_2018,sr_2015)
+  colnames(rpi_2018)[2] = "School"
+  colnames(rpi_2017)[2] = "School"
+  colnames(rpi_2016)[2] = "School"
+  colnames(rpi_2015)[2] = "School"
+  sr_2018 = merge(sr_2018,rpi_2018, by = "School")
+  sr_2017 = merge(sr_2017,rpi_2017, by = "School")
+  sr_2016 = merge(sr_2016,rpi_2016, by = "School")
+  sr_2015 = merge(sr_2015,rpi_2015, by = "School")
+  colnames(sr_2018)[6] = "RPI Rank"
+  colnames(sr_2017)[6] = "RPI Rank"
+  colnames(sr_2016)[6] = "RPI Rank"
+  colnames(sr_2015)[6] = "RPI Rank"
   
   ## Creating NET Ranking (Only Since 2019)
-  ## Unable to find numerical values, only ranking
   
   net_ranking = function(x){
     url = getURL(x)
@@ -1114,7 +781,7 @@ library(R.utils)
   net_2019 = net_ranking('http://warrennolan.com/basketball/2019/net')
   
       ## Functions to create dictionary for NET source
-      create_dictionary_function_modified = function(x,y){ #x = sr_year$School, y = net_year$Team
+      create_net_dictionary_function = function(x,y){ #x = sr_year$School, y = net_year$Team
         library(stringdist)
         distance_chart <- expand.grid(x,y) 
         names(distance_chart) <- c("SR School","NET School")
@@ -1126,31 +793,8 @@ library(R.utils)
         dictionary
       } 
       
-      add_net_function = function(x,y,z){ #x = net_year, y = dictionary_year, z = sr_year
-        for(i in 1:length(x$Team)){
-          for(j in 1:length(y$b)){
-            if(x$Team[i] == y$b[j]){
-              x$Team[i] = y$a[j]
-            }
-          }
-        }
-        
-        x$`NET Rank` = as.character(x$`NET Rank`)
-        
-        `NET Rank` = rep(NA,length(z$School))
-        for(i in 1:length(z$School)){
-          for(j in 1:length(x$Team)){
-            if(z$School[i] == x$Team[j]){
-              `NET Rank`[i] = x$`NET Rank`[j]
-            }
-          }
-        }
-        z = cbind(z,`NET Rank`)
-        z
-      }
-  
     ## 2020 NET
-    dictionary_net_2020 = create_dictionary_function_modified(sr_2020$School,net_2020$Team)
+    dictionary_net_2020 = create_net_dictionary_function(sr_2020$School,net_2020$Team)
     dictionary_net_2020[39,2] = "UCF"
     dictionary_net_2020[46,2] = "TCU"
     dictionary_net_2020[143,2] = "LSU"
@@ -1161,11 +805,15 @@ library(R.utils)
     dictionary_net_2020[308,2] = "UMBC"
     dictionary_net_2020[312,2] = "California"
   
-    setdiff(net_2020$Team, dictionary_net_2020$b)
-    sr_2020 = add_net_function(net_2020, dictionary_net_2020, sr_2020)
+    setdiff(net_2020$Team, dictionary_net$b)
     
+    ## Merge data
+    net_2020 = order_team_names_function(net_2020,dictionary_net_2020,sr_2020)
+    colnames(net_2020)[1] = "School"
+    sr_2020 = merge(sr_2020,net_2020, by = "School")
+   
     ## 2019 NET
-    dictionary_net_2019 = create_dictionary_function_modified(sr_2019$School,net_2019$Team)
+    dictionary_net_2019 = create_net_dictionary_function(sr_2019$School,net_2019$Team)
     dictionary_net_2019[39,2] = "UCF"
     dictionary_net_2019[46,2] = "TCU"
     dictionary_net_2019[143,2] = "LSU"
@@ -1177,7 +825,10 @@ library(R.utils)
     dictionary_net_2019[312,2] = "California"
     
     setdiff(net_2019$Team, dictionary_net_2019$b)
-    sr_2019 = add_net_function(net_2019, dictionary_net_2019, sr_2019)
+    ## Merge data
+    net_2019 = order_team_names_function(net_2019,dictionary_net_2019,sr_2019)
+    colnames(net_2019)[1] = "School"
+    sr_2019 = merge(sr_2019,net_2019, by = "School")
   
   ## Adding Empty NET Variables to sr_2015 - sr_2018
   sr_2015$`NET Rank` = rep(NA,351)
@@ -1186,7 +837,7 @@ library(R.utils)
   sr_2018$`NET Rank` = rep(NA,351)
 
   ## Merging data_year with sr_year
-  create_dictionary_transfer_function = function(x,y){ #x = sr_year$School, y = data_year$Team
+  create_merge_dictionary_function = function(x,y){ #x = sr_year$School, y = data_year$Team
     library(stringdist)
     distance_chart <- expand.grid(x,y) 
     names(distance_chart) <- c("SR School","Data School")
@@ -1199,141 +850,117 @@ library(R.utils)
   }
    
    ## 2020 Full
-   dictionary_transfer_2020 = create_dictionary_transfer_function(sr_2020$School,data_2020$Team)
-   dictionary_transfer_2020[43,2] = "UMBC"
-   dictionary_transfer_2020[97,2] = "Nebraska Omaha"
-   dictionary_transfer_2020[143,2] = "Cal Baptist"
-   dictionary_transfer_2020[210,2] = "USC Upstate"
-   dictionary_transfer_2020[223,2] = "UNLV"
-   dictionary_transfer_2020[233,2] = "LSU"
-   dictionary_transfer_2020[270,2] = "California"
-   dictionary_transfer_2020[273,2] = "Louisiana Lafayette"
-   dictionary_transfer_2020[291,2] = "LIU Brooklyn"
-   dictionary_transfer_2020[324,2] = "Long Beach St."
+   dictionary_merge_2020 = create_merge_dictionary_function(sr_2020$School,data_2020$Team)
+   dictionary_merge_2020[43,2] = "UMBC"
+   dictionary_merge_2020[97,2] = "Nebraska Omaha"
+   dictionary_merge_2020[143,2] = "Cal Baptist"
+   dictionary_merge_2020[210,2] = "USC Upstate"
+   dictionary_merge_2020[223,2] = "UNLV"
+   dictionary_merge_2020[233,2] = "LSU"
+   dictionary_merge_2020[270,2] = "California"
+   dictionary_merge_2020[273,2] = "Louisiana Lafayette"
+   dictionary_merge_2020[291,2] = "LIU Brooklyn"
+   dictionary_merge_2020[324,2] = "Long Beach St."
    
-   setdiff(data_2020$Team, dictionary_transfer_2020$b)
-   
-   data_2020$Team %in% dictionary_transfer_2020$b
-  
-   order_team_names_function = function(x,y,z){ #x = data_year, y = dictionary_transfer_year, z = sr_year
-     for(i in 1:length(x$Team)){
-       for(j in 1:length(y$b)){
-         if(x$Team[i] == y$b[j]){
-           x$Team[i] = y$a[j]
-         }
-       }
-     }
-     x
-   }
+   setdiff(data_2020$Team, dictionary_merge_2020$b)
 
-    data_2020 = order_team_names_function(data_2020,dictionary_transfer_2020,sr_2020)
-    colnames(data_2020)[1] = "School"
-    full_2020 = merge(sr_2020,data_2020, by = "School")
+   data_2020 = order_team_names_function(data_2020,dictionary_merge_2020,sr_2020)
+   colnames(data_2020)[1] = "School"
+   full_2020 = merge(sr_2020,data_2020, by = "School")
     
     ## 2019 Full
-    dictionary_transfer_2019 = create_dictionary_transfer_function(sr_2019$School,data_2019$Team)
-    dictionary_transfer_2019[19,2] = "UMBC"
-    dictionary_transfer_2019[164,2] = "LSU"
-    dictionary_transfer_2019[172,2] = "Nebraska Omaha"
-    dictionary_transfer_2019[177,2] = "UNLV"
-    dictionary_transfer_2019[185,2] = "USC Upstate"
-    dictionary_transfer_2019[216,2] = "Cal Baptist"
-    dictionary_transfer_2019[225,2] = "LIU Brooklyn"
-    dictionary_transfer_2019[243,2] = "California"
-    dictionary_transfer_2019[259,2] = "Louisiana Lafayette"
-    dictionary_transfer_2019[337,2] = "Long Beach St."
+    dictionary_merge_2019 = create_merge_dictionary_function(sr_2019$School,data_2019$Team)
+    dictionary_merge_2019[19,2] = "UMBC"
+    dictionary_merge_2019[164,2] = "LSU"
+    dictionary_merge_2019[172,2] = "Nebraska Omaha"
+    dictionary_merge_2019[177,2] = "UNLV"
+    dictionary_merge_2019[185,2] = "USC Upstate"
+    dictionary_merge_2019[216,2] = "Cal Baptist"
+    dictionary_merge_2019[225,2] = "LIU Brooklyn"
+    dictionary_merge_2019[243,2] = "California"
+    dictionary_merge_2019[259,2] = "Louisiana Lafayette"
+    dictionary_merge_2019[337,2] = "Long Beach St."
 
-    setdiff(data_2019$Team, dictionary_transfer_2019$b)
+    setdiff(data_2019$Team, dictionary_merge_2019$b)
     
-    data_2019$Team %in% dictionary_transfer_2019$b
-    
-    data_2019 = order_team_names_function(data_2019,dictionary_transfer_2019,sr_2019)
+    data_2019 = order_team_names_function(data_2019,dictionary_merge_2019,sr_2019)
     colnames(data_2019)[1] = "School"
     full_2019 = merge(sr_2019,data_2019, by = "School")
     
     
     ## 2018 Full
-    dictionary_transfer_2018 = create_dictionary_transfer_function(sr_2018$School,data_2018$Team)
-    dictionary_transfer_2018[62,2] = "USC Upstate"
-    dictionary_transfer_2018[65,2] = "LSU"
-    dictionary_transfer_2018[108,2] = "UMBC"
-    dictionary_transfer_2018[121,2] = "Nebraska Omaha"
-    dictionary_transfer_2018[196,2] = "LIU Brooklyn"
-    dictionary_transfer_2018[198,2] = "California"
-    dictionary_transfer_2018[239,2] = "UCF"
-    dictionary_transfer_2018[248,2] = "Louisiana Lafayette"
-    dictionary_transfer_2018[278,2] = "UNLV"
-    dictionary_transfer_2018[329,2] = "Long Beach St."
+    dictionary_merge_2018 = create_merge_dictionary_function(sr_2018$School,data_2018$Team)
+    dictionary_merge_2018[62,2] = "USC Upstate"
+    dictionary_merge_2018[65,2] = "LSU"
+    dictionary_merge_2018[108,2] = "UMBC"
+    dictionary_merge_2018[121,2] = "Nebraska Omaha"
+    dictionary_merge_2018[196,2] = "LIU Brooklyn"
+    dictionary_merge_2018[198,2] = "California"
+    dictionary_merge_2018[239,2] = "UCF"
+    dictionary_merge_2018[248,2] = "Louisiana Lafayette"
+    dictionary_merge_2018[278,2] = "UNLV"
+    dictionary_merge_2018[329,2] = "Long Beach St."
     
-    setdiff(data_2018$Team, dictionary_transfer_2018$b)
+    setdiff(data_2018$Team, dictionary_merge_2018$b)
     
-    data_2018$Team %in% dictionary_transfer_2018$b
-    
-    data_2018 = order_team_names_function(data_2018,dictionary_transfer_2018,sr_2018)
+    data_2018 = order_team_names_function(data_2018,dictionary_merge_2018,sr_2018)
     colnames(data_2018)[1] = "School"
     full_2018 = merge(sr_2018,data_2018, by = "School")
     
     ## 2017 Full
-    dictionary_transfer_2017 = create_dictionary_transfer_function(sr_2017$School,data_2017$Team)
-    dictionary_transfer_2017[58,2] = "UCF"
-    dictionary_transfer_2017[66,2] = "USC Upstate"
-    dictionary_transfer_2017[152,2] = "LSU"
-    dictionary_transfer_2017[178,2] = "UNLV"
-    dictionary_transfer_2017[180,2] = "UMBC"
-    dictionary_transfer_2017[199,2] = "California"
-    dictionary_transfer_2017[207,2] = "LIU Brooklyn"
-    dictionary_transfer_2017[243,2] = "Nebraska Omaha"
-    dictionary_transfer_2017[255,2] = "Louisiana Lafayette"
-    dictionary_transfer_2017[256,2] = "Long Beach St."
+    dictionary_merge_2017 = create_merge_dictionary_function(sr_2017$School,data_2017$Team)
+    dictionary_merge_2017[58,2] = "UCF"
+    dictionary_merge_2017[66,2] = "USC Upstate"
+    dictionary_merge_2017[152,2] = "LSU"
+    dictionary_merge_2017[178,2] = "UNLV"
+    dictionary_merge_2017[180,2] = "UMBC"
+    dictionary_merge_2017[199,2] = "California"
+    dictionary_merge_2017[207,2] = "LIU Brooklyn"
+    dictionary_merge_2017[243,2] = "Nebraska Omaha"
+    dictionary_merge_2017[255,2] = "Louisiana Lafayette"
+    dictionary_merge_2017[256,2] = "Long Beach St."
     
-    setdiff(data_2017$Team, dictionary_transfer_2017$b)
+    setdiff(data_2017$Team, dictionary_merge_2017$b)
     
-    data_2017$Team %in% dictionary_transfer_2017$b
-    
-    data_2017 = order_team_names_function(data_2017,dictionary_transfer_2017,sr_2017)
+    data_2017 = order_team_names_function(data_2017,dictionary_merge_2017,sr_2017)
     colnames(data_2017)[1] = "School"
     full_2017 = merge(sr_2017,data_2017, by = "School")
     
     ## 2016 Full
-    dictionary_transfer_2016 = create_dictionary_transfer_function(sr_2016$School,data_2016$Team)
-    dictionary_transfer_2016[20,2] = "UCF"
-    dictionary_transfer_2016[66,2] = "USC Upstate"
-    dictionary_transfer_2016[99,2] = "LIU Brooklyn"
-    dictionary_transfer_2016[113,2] = "UMBC"
-    dictionary_transfer_2016[132,2] = "LSU"
-    dictionary_transfer_2016[153,2] = "UNLV"
-    dictionary_transfer_2016[186,2] = "Nebraska Omaha"
-    dictionary_transfer_2016[277,2] = "Louisiana Lafayette"
-    dictionary_transfer_2016[306,2] = "Long Beach St."
-    dictionary_transfer_2016[334,2] = "California"
+    dictionary_merge_2016 = create_merge_dictionary_function(sr_2016$School,data_2016$Team)
+    dictionary_merge_2016[20,2] = "UCF"
+    dictionary_merge_2016[66,2] = "USC Upstate"
+    dictionary_merge_2016[99,2] = "LIU Brooklyn"
+    dictionary_merge_2016[113,2] = "UMBC"
+    dictionary_merge_2016[132,2] = "LSU"
+    dictionary_merge_2016[153,2] = "UNLV"
+    dictionary_merge_2016[186,2] = "Nebraska Omaha"
+    dictionary_merge_2016[277,2] = "Louisiana Lafayette"
+    dictionary_merge_2016[306,2] = "Long Beach St."
+    dictionary_merge_2016[334,2] = "California"
     
-    setdiff(data_2016$Team, dictionary_transfer_2016$b)
+    setdiff(data_2016$Team, dictionary_merge_2016$b)
     
-    data_2016$Team %in% dictionary_transfer_2016$b
-    
-    data_2016 = order_team_names_function(data_2016,dictionary_transfer_2016,sr_2016)
+    data_2016 = order_team_names_function(data_2016,dictionary_merge_2016,sr_2016)
     colnames(data_2016)[1] = "School"
     full_2016 = merge(sr_2016,data_2016, by = "School")
     
     ## 2015 Full
-    dictionary_transfer_2015 = create_dictionary_transfer_function(sr_2015$School,data_2015$Team)
-    dictionary_transfer_2015[42,2] = "USC Upstate"
-    dictionary_transfer_2015[94,2] = "UMBC"
-    dictionary_transfer_2015[112,2] = "UCF"
-    dictionary_transfer_2015[129,2] = "LIU Brooklyn"
-    dictionary_transfer_2015[136,2] = "LSU"
-    dictionary_transfer_2015[167,2] = "Long Beach St."
-    dictionary_transfer_2015[258,2] = "Nebraska Omaha"
-    dictionary_transfer_2015[265,2] = "UNLV"
-    dictionary_transfer_2015[281,2] = "Louisiana Lafayette"
-    dictionary_transfer_2015[346,2] = "California"
+    dictionary_merge_2015 = create_merge_dictionary_function(sr_2015$School,data_2015$Team)
+    dictionary_merge_2015[42,2] = "USC Upstate"
+    dictionary_merge_2015[94,2] = "UMBC"
+    dictionary_merge_2015[112,2] = "UCF"
+    dictionary_merge_2015[129,2] = "LIU Brooklyn"
+    dictionary_merge_2015[136,2] = "LSU"
+    dictionary_merge_2015[167,2] = "Long Beach St."
+    dictionary_merge_2015[258,2] = "Nebraska Omaha"
+    dictionary_merge_2015[265,2] = "UNLV"
+    dictionary_merge_2015[281,2] = "Louisiana Lafayette"
+    dictionary_merge_2015[346,2] = "California"
  
+    setdiff(data_2015$Team, dictionary_merge_2015$b)
     
-    setdiff(data_2015$Team, dictionary_transfer_2015$b)
-    
-    data_2015$Team %in% dictionary_transfer_2015$b
-    
-    data_2015 = order_team_names_function(data_2015,dictionary_transfer_2015,sr_2015)
+    data_2015 = order_team_names_function(data_2015,dictionary_merge_2015,sr_2015)
     colnames(data_2015)[1] = "School"
     full_2015 = merge(sr_2015,data_2015, by = "School")
     
