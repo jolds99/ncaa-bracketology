@@ -27,6 +27,7 @@ library(R.utils)
         data_hold = rbind(data_hold,data[[i]])
       }
       data_hold = data_hold[,c(2:10,15:18,41:43)]
+      data_hold$Team = as.character(data_hold$Team)
       data_hold
     }
     
@@ -1183,5 +1184,163 @@ library(R.utils)
   sr_2016$`NET Rank` = rep(NA,351)
   sr_2017$`NET Rank` = rep(NA,351)
   sr_2018$`NET Rank` = rep(NA,351)
+
+  ## Merging data_year with sr_year
+  create_dictionary_transfer_function = function(x,y){ #x = sr_year$School, y = data_year$Team
+    library(stringdist)
+    distance_chart <- expand.grid(x,y) 
+    names(distance_chart) <- c("SR School","Data School")
+    distance_chart$distance <- stringdist(distance_chart$`SR School`,distance_chart$`Data School`, method="jw")
+    
+    dictionary = data.frame(greedyAssign(as.character(distance_chart$`SR School`),as.character(distance_chart$`Data School`),distance_chart$distance))
+    dictionary$a = as.character(dictionary$a)
+    dictionary$b = as.character(dictionary$b)
+    dictionary
+  }
+   
+   ## 2020 Full
+   dictionary_transfer_2020 = create_dictionary_transfer_function(sr_2020$School,data_2020$Team)
+   dictionary_transfer_2020[43,2] = "UMBC"
+   dictionary_transfer_2020[97,2] = "Nebraska Omaha"
+   dictionary_transfer_2020[143,2] = "Cal Baptist"
+   dictionary_transfer_2020[210,2] = "USC Upstate"
+   dictionary_transfer_2020[223,2] = "UNLV"
+   dictionary_transfer_2020[233,2] = "LSU"
+   dictionary_transfer_2020[270,2] = "California"
+   dictionary_transfer_2020[273,2] = "Louisiana Lafayette"
+   dictionary_transfer_2020[291,2] = "LIU Brooklyn"
+   dictionary_transfer_2020[324,2] = "Long Beach St."
+   
+   setdiff(data_2020$Team, dictionary_transfer_2020$b)
+   
+   data_2020$Team %in% dictionary_transfer_2020$b
   
-  
+   order_team_names_function = function(x,y,z){ #x = data_year, y = dictionary_transfer_year, z = sr_year
+     for(i in 1:length(x$Team)){
+       for(j in 1:length(y$b)){
+         if(x$Team[i] == y$b[j]){
+           x$Team[i] = y$a[j]
+         }
+       }
+     }
+     x
+   }
+
+    data_2020 = order_team_names_function(data_2020,dictionary_transfer_2020,sr_2020)
+    colnames(data_2020)[1] = "School"
+    full_2020 = merge(sr_2020,data_2020, by = "School")
+    
+    ## 2019 Full
+    dictionary_transfer_2019 = create_dictionary_transfer_function(sr_2019$School,data_2019$Team)
+    dictionary_transfer_2019[19,2] = "UMBC"
+    dictionary_transfer_2019[164,2] = "LSU"
+    dictionary_transfer_2019[172,2] = "Nebraska Omaha"
+    dictionary_transfer_2019[177,2] = "UNLV"
+    dictionary_transfer_2019[185,2] = "USC Upstate"
+    dictionary_transfer_2019[216,2] = "Cal Baptist"
+    dictionary_transfer_2019[225,2] = "LIU Brooklyn"
+    dictionary_transfer_2019[243,2] = "California"
+    dictionary_transfer_2019[259,2] = "Louisiana Lafayette"
+    dictionary_transfer_2019[337,2] = "Long Beach St."
+
+    setdiff(data_2019$Team, dictionary_transfer_2019$b)
+    
+    data_2019$Team %in% dictionary_transfer_2019$b
+    
+    data_2019 = order_team_names_function(data_2019,dictionary_transfer_2019,sr_2019)
+    colnames(data_2019)[1] = "School"
+    full_2019 = merge(sr_2019,data_2019, by = "School")
+    
+    
+    ## 2018 Full
+    dictionary_transfer_2018 = create_dictionary_transfer_function(sr_2018$School,data_2018$Team)
+    dictionary_transfer_2018[62,2] = "USC Upstate"
+    dictionary_transfer_2018[65,2] = "LSU"
+    dictionary_transfer_2018[108,2] = "UMBC"
+    dictionary_transfer_2018[121,2] = "Nebraska Omaha"
+    dictionary_transfer_2018[196,2] = "LIU Brooklyn"
+    dictionary_transfer_2018[198,2] = "California"
+    dictionary_transfer_2018[239,2] = "UCF"
+    dictionary_transfer_2018[248,2] = "Louisiana Lafayette"
+    dictionary_transfer_2018[278,2] = "UNLV"
+    dictionary_transfer_2018[329,2] = "Long Beach St."
+    
+    setdiff(data_2018$Team, dictionary_transfer_2018$b)
+    
+    data_2018$Team %in% dictionary_transfer_2018$b
+    
+    data_2018 = order_team_names_function(data_2018,dictionary_transfer_2018,sr_2018)
+    colnames(data_2018)[1] = "School"
+    full_2018 = merge(sr_2018,data_2018, by = "School")
+    
+    ## 2017 Full
+    dictionary_transfer_2017 = create_dictionary_transfer_function(sr_2017$School,data_2017$Team)
+    dictionary_transfer_2017[58,2] = "UCF"
+    dictionary_transfer_2017[66,2] = "USC Upstate"
+    dictionary_transfer_2017[152,2] = "LSU"
+    dictionary_transfer_2017[178,2] = "UNLV"
+    dictionary_transfer_2017[180,2] = "UMBC"
+    dictionary_transfer_2017[199,2] = "California"
+    dictionary_transfer_2017[207,2] = "LIU Brooklyn"
+    dictionary_transfer_2017[243,2] = "Nebraska Omaha"
+    dictionary_transfer_2017[255,2] = "Louisiana Lafayette"
+    dictionary_transfer_2017[256,2] = "Long Beach St."
+    
+    setdiff(data_2017$Team, dictionary_transfer_2017$b)
+    
+    data_2017$Team %in% dictionary_transfer_2017$b
+    
+    data_2017 = order_team_names_function(data_2017,dictionary_transfer_2017,sr_2017)
+    colnames(data_2017)[1] = "School"
+    full_2017 = merge(sr_2017,data_2017, by = "School")
+    
+    ## 2016 Full
+    dictionary_transfer_2016 = create_dictionary_transfer_function(sr_2016$School,data_2016$Team)
+    dictionary_transfer_2016[20,2] = "UCF"
+    dictionary_transfer_2016[66,2] = "USC Upstate"
+    dictionary_transfer_2016[99,2] = "LIU Brooklyn"
+    dictionary_transfer_2016[113,2] = "UMBC"
+    dictionary_transfer_2016[132,2] = "LSU"
+    dictionary_transfer_2016[153,2] = "UNLV"
+    dictionary_transfer_2016[186,2] = "Nebraska Omaha"
+    dictionary_transfer_2016[277,2] = "Louisiana Lafayette"
+    dictionary_transfer_2016[306,2] = "Long Beach St."
+    dictionary_transfer_2016[334,2] = "California"
+    
+    setdiff(data_2016$Team, dictionary_transfer_2016$b)
+    
+    data_2016$Team %in% dictionary_transfer_2016$b
+    
+    data_2016 = order_team_names_function(data_2016,dictionary_transfer_2016,sr_2016)
+    colnames(data_2016)[1] = "School"
+    full_2016 = merge(sr_2016,data_2016, by = "School")
+    
+    ## 2015 Full
+    dictionary_transfer_2015 = create_dictionary_transfer_function(sr_2015$School,data_2015$Team)
+    dictionary_transfer_2015[42,2] = "USC Upstate"
+    dictionary_transfer_2015[94,2] = "UMBC"
+    dictionary_transfer_2015[112,2] = "UCF"
+    dictionary_transfer_2015[129,2] = "LIU Brooklyn"
+    dictionary_transfer_2015[136,2] = "LSU"
+    dictionary_transfer_2015[167,2] = "Long Beach St."
+    dictionary_transfer_2015[258,2] = "Nebraska Omaha"
+    dictionary_transfer_2015[265,2] = "UNLV"
+    dictionary_transfer_2015[281,2] = "Louisiana Lafayette"
+    dictionary_transfer_2015[346,2] = "California"
+ 
+    
+    setdiff(data_2015$Team, dictionary_transfer_2015$b)
+    
+    data_2015$Team %in% dictionary_transfer_2015$b
+    
+    data_2015 = order_team_names_function(data_2015,dictionary_transfer_2015,sr_2015)
+    colnames(data_2015)[1] = "School"
+    full_2015 = merge(sr_2015,data_2015, by = "School")
+    
+    write_csv(full_2015, "Full CSV Data Files/full_2015.csv")
+    write_csv(full_2016, "Full CSV Data Files/full_2016.csv")
+    write_csv(full_2017, "Full CSV Data Files/full_2017.csv")
+    write_csv(full_2018, "Full CSV Data Files/full_2018.csv")
+    write_csv(full_2019, "Full CSV Data Files/full_2019.csv")    
+    write_csv(full_2020, "Full CSV Data Files/full_2020.csv")    
+    
