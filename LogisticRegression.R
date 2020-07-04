@@ -3,118 +3,145 @@ library(tidyverse)
 library(intrval)
 library(car)
 library(Rfast)
-head(alldata)
-str(alldata)
-
-
-## Train = 70% of each season, include conference champs
-set.seed(2020)
-train_1 = alldata %>% group_by(Season) %>% sample_frac(0.70)
-test_1 = anti_join(alldata, train)
-
-table(train_1$`Make Tournament`)
-table(test_1$`Make Tournament`)
-
-      ## Basic Model
-      model_0 = glm(`Make Tournament` ~ Wins, data = train_1, family = binomial)
-      summary(model_0)
-      exp(coef(model_0)[-1])
-      
-      probs_0 = round(predict(model_0,test_1,type = "response"),2)
-      predictions_0 = ifelse(probs_0 > 0.5, 1, 0)
-      predictions_0 = factor(predictions_0, levels = c(0,1))
-      actual_0 = test_1$`Make Tournament`
-      mean(predictions_0 == actual_0)
-      predict_summary_0 = matrix(NA,2,2)
-      predict_summary_0[,1] = cbind(length(which(predictions_0 == 1)),length(which(actual_0 == 1)))
-      predict_summary_0[,2] = cbind(length(which(predictions_0 == 0)),length(which(actual_0 == 0)))
-      colnames(predict_summary_0) = c("Make Tourn.", "Miss Tourn.")
-      rownames(predict_summary_0) = c("Predicted", "Actual")
-      predict_summary_0
-      
-      ## Model with Wins and SOS
-      model_1 = glm(`Make Tournament` ~ Wins + SOS, data = train_1, family = binomial)
-      
-      summary(model_1)
-      exp(coef(model_1)[-1])
-      vif(model_1)
-      
-      probs_1 = round(predict(model_1,test_1,type = "response"),2)
-      predictions_1 = ifelse(probs_1 > 0.5, 1, 0)
-      predictions_1 = factor(predictions_1, levels = c(0,1))
-      actual_1 = test_1$`Make Tournament`
-      mean(predictions_1 == actual_1)
-      predict_summary_1 = matrix(NA,2,2)
-      predict_summary_1[,1] = cbind(length(which(predictions_1 == 1)),length(which(actual_1 == 1)))
-      predict_summary_1[,2] = cbind(length(which(predictions_1 == 0)),length(which(actual_1 == 0)))
-      colnames(predict_summary_1) = c("Make Tourn.", "Miss Tourn.")
-      rownames(predict_summary_1) = c("Predicted", "Actual")
-      predict_summary_1
-      
-      ## Model with Wins, SOS, WAB Rank 
-      model_2 = glm(`Make Tournament` ~ Wins + SOS + `WAB Rank`, data = train_1, family = binomial)
-      
-      summary(model_2)
-      exp(coef(model_2)[-1])
-      vif(model_2)
-      
-      probs_2 = round(predict(model_2,test_1,type = "response"),2)
-      predictions_2 = ifelse(probs_2 > 0.5, 1, 0)
-      predictions_2 = factor(predictions_2, levels = c(0,1))
-      actual_2 = test_1$`Make Tournament`
-      mean(predictions_2 == actual_2)
-      predict_summary_2 = matrix(NA,2,2)
-      predict_summary_2[,1] = cbind(length(which(predictions_2 == 1)),length(which(actual_2 == 1)))
-      predict_summary_2[,2] = cbind(length(which(predictions_2 == 0)),length(which(actual_2 == 0)))
-      colnames(predict_summary_2) = c("Make Tourn.", "Miss Tourn.")
-      rownames(predict_summary_2) = c("Predicted", "Actual")
-      predict_summary_2
-      
-      ## Model with Wins & Non Conf SOS
-      model_3 = glm(`Make Tournament` ~ Wins + `Non-Conf SOS`, data = train_1, family = binomial)
-      
-      summary(model_3)
-      exp(coef(model_3)[-1])
-      vif(model_3)
-      
-      probs_3 = round(predict(model_3,test_1,type = "response"),2)
-      predictions_3 = ifelse(probs_3 > 0.5, 1, 0)
-      predictions_3 = factor(predictions_3, levels = c(0,1))
-      actual_3 = test_1$`Make Tournament`
-      mean(predictions_3 == actual_3)
-      predict_summary_3 = matrix(NA,2,2)
-      predict_summary_3[,1] = cbind(length(which(predictions_3 == 1)),length(which(actual_3 == 1)))
-      predict_summary_3[,2] = cbind(length(which(predictions_3 == 0)),length(which(actual_3 == 0)))
-      colnames(predict_summary_3) = c("Make Tourn.", "Miss Tourn.")
-      rownames(predict_summary_3) = c("Predicted", "Actual")
-      predict_summary_3
-
-## Potential Fix to Imbalance
-down_train_1 <- downSample(x = train_1[, colnames(train_1) %ni% "`Make Tournament`"],
-                         y = train_1$`Make Tournament`)
-table(down_train_1$`Make Tournament`)
-up_train_1 <- upSample(x = train_1[, colnames(train_1) %ni% "`Make Tournament`"],
-                     y = train_1$`Make Tournament`)
-table(up_train_1$`Make Tournament`)
-
+library(data.table)
 
 ## Train = 2015-2018 Seasons, no Conference Champs
+## Test = 2019 Season, no Conference Champs
 nccdata = alldata %>% filter(`Conference Champ` != 1)
+ccdata = alldata %>% filter(`Conference Champ` == 1)
 train_2 = nccdata %>% filter(Season != 2019) 
 test_2 = nccdata %>% filter(Season == 2019)
 
-model_0 = glm(`Make Tournament` ~ Wins, data = train_2, family = binomial)
+## Multiplying variables with values between 0 and 1 by 100 for better model comparison
+### DONT FORGET I DID THIS ###
+nccdata$SOS = nccdata$SOS * 100
+nccdata$`Conference Win %` = nccdata$`Conference Win %` * 100
+nccdata$`Conference SOS` = nccdata$`Conference SOS` * 100
+nccdata$`Non-Conf SOS` = nccdata$`Non-Conf SOS` * 100
+nccdata$Barthag = nccdata$Barthag * 100
+##############################
 
-summary(model_0)
-exp(coef(model_0))[-1]
+#### INDIVIDUAL MODELS
+model_L12 = glm(`Make Tournament` ~ `Last 12 Wins`, data = nccdata, family = binomial)
+summary(model_L12)
+coef_L12 = rbind(round(summary(model_L12)$coefficients[2,],8))
 
-probs_0 = round(predict(model_0,test_2,type = "response"),3)
-predictions_0 = as.data.frame(cbind(test_2$School, probs_0))
-predictions_0 = predictions_0[order(-probs_0),]
-predicted_selections = predictions_0[1:36,1:2]
-colnames(predicted_selections) = c("School", "Probability")
-actual_selections = test_2 %>% filter(`Make Tournament` == 1) %>% select(School)
-predicted_selections = as.character(predicted_selections$School)
-actual_selections = as.character(actual_selections$School)
+model_CF = glm(`Make Tournament` ~ `Conference Finish`, data = nccdata, family = binomial)
+summary(CF)
+coef_CF = rbind(round(summary(model_CF)$coefficients[2,],8))
 
-mean(actual_selections %in% predicted_selections == TRUE)
+model_RPI = glm(`Make Tournament` ~ `RPI Rank`, data = nccdata, family = binomial)
+summary(model_RPI)
+coef_RPI = rbind(round(summary(model_RPI)$coefficients[2,],8))
+
+model_W = glm(`Make Tournament` ~ `Wins`, data = nccdata, family = binomial)
+summary(model_W)
+coef_W = rbind(round(summary(model_W)$coefficients[2,],8))
+
+model_AOE = glm(`Make Tournament` ~ `Adj. Offensive Efficiency`, data = nccdata, family = binomial)
+summary(model_AOE)
+coef_AOE = rbind(round(summary(model_AOE)$coefficients[2,],8))
+
+model_DOE = glm(`Make Tournament` ~ `Adj. Defensive Efficiency`, data = nccdata, family = binomial)
+summary(model_12)
+coef_DOE = rbind(round(summary(model_DOE)$coefficients[2,],8))
+
+model_BT = glm(`Make Tournament` ~ `Barthag`, data = nccdata, family = binomial)
+summary(model_BT)
+coef_BT = rbind(round(summary(model_BT)$coefficients[2,],8))
+
+model_SOS = glm(`Make Tournament` ~ `SOS`, data = nccdata, family = binomial)
+summary(model_SOS)
+coef_SOS = rbind(round(summary(model_SOS)$coefficients[2,],8))
+
+model_NCSOS = glm(`Make Tournament` ~ `Non-Conf SOS`, data = nccdata, family = binomial)
+summary(model_NCSOS)
+coef_NCSOS = rbind(round(summary(model_NCSOS)$coefficients[2,],8))
+
+model_CSOS = glm(`Make Tournament` ~ `Conference SOS`, data = nccdata, family = binomial)
+summary(model_CSOS)
+coef_CSOS = rbind(round(summary(model_CSOS)$coefficients[2,],8))
+
+model_CWP = glm(`Make Tournament` ~ `Conference Win %`, data = nccdata, family = binomial)
+summary(model_CWP)
+coef_CWP = rbind(round(summary(model_CWP)$coefficients[2,],8))
+
+model_WAB = glm(`Make Tournament` ~ `Wins Above Bubble`, data = nccdata, family = binomial)
+summary(model_WAB)
+coef_WAB = rbind(round(summary(model_WAB)$coefficients[2,],8))
+
+model_EA = glm(`Make Tournament` ~ `Efficiency Avg`, data = nccdata, family = binomial)
+summary(model_EA)
+coef_EA = rbind(round(summary(model_EA)$coefficients[2,],8))
+
+coefs = as.data.frame(rbind(coef_L12, coef_CF, coef_RPI, coef_W, coef_AOE, coef_DOE, coef_BT,
+              coef_SOS, coef_NCSOS, coef_CSOS, coef_CWP, coef_WAB, coef_EA)) 
+    
+coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSOS", "CF", "WAB", "EA")
+    
+
+## Building Multi-variate Models
+
+model_full = glm(`Make Tournament` ~ `Last 12 Wins` + `Conference Finish` + `RPI Rank` + 
+                   Wins + `Adj. Offensive Efficiency` + `Adj. Defensive Efficiency` + Barthag + 
+                   SOS + `Non-Conf SOS` + `Conference SOS` + `Conference Finish` + `Wins Above Bubble`,
+                 data = train_2, family = binomial)
+summary(model_full)
+vif(model_full)
+
+
+
+    
+    ## Confidence Interval 
+    exp(summary(model_0)$coefficients[2,1] + qnorm(c(0.025,0.5,0.975)) * summary(model_0)$coefficients[2,2]) 
+    
+    ## Functions to Gather Prediction Accuracy Rate from Models
+    calc_test_probs = function(model,test){
+      probs = round(predict(model,test,type = "response"),3)
+      predictions = as.data.frame(cbind(test$School, probs))
+      predictions = predictions[order(-probs),]
+      ps_test = predictions[1:36,1:2]
+      colnames(ps_test) = c("School", "Probability")
+      ps_test = ps_test %>% arrange(School)
+      as_test = test %>% filter(`Make Tournament` == 1) %>% select(School)
+      ps_test = as.character(ps_test$School)
+      as_test = as.character(as_test$School)
+      ms_test = as.data.frame(cbind(ps_test, as_test))
+      colnames(ms_test) = c("Predicted Schools", "Actual Schools")
+      cp = mean(ms_test$`Actual Schools` %in% ms_test$`Predicted Schools` == TRUE)
+      cp
+    }
+    
+    calc_train_probs = function(model, train){
+      probs = round(predict(model,train,type = "response"),3)
+      predictions = as.data.frame(cbind(train$School, train$Season, probs))
+      colnames(predictions) = c("School", "Season", "Probability")
+      ps_train = predictions %>% group_by(Season) %>% arrange(Season,-probs)
+      ps_train = by(ps_train, ps_train["Season"], head, 36)
+      ps_train = Reduce(rbind,ps_train)
+      ps_train = ps_train %>% group_by(Season) %>% arrange(School, .by_group = TRUE)
+      ps_train[,1:2] = lapply(ps_train[,1:2], as.character)
+      as_train = train %>% filter(`Make Tournament` == 1) %>% select(School, Season)
+      ms_train = as.data.frame(cbind(ps_train$School, ps_train$Season, as_train$School))
+      colnames(ms_train) = c("Predicted Schools", "Season", "Actual Schools")
+      correct_15 = sum(ms_train$`Actual Schools`[1:36] %in% ms_train$`Predicted Schools`[1:36] == TRUE)
+      correct_16 = sum(ms_train$`Actual Schools`[37:72] %in% ms_train$`Predicted Schools`[37:72] == TRUE)
+      correct_17 = sum(ms_train$`Actual Schools`[73:108] %in% ms_train$`Predicted Schools`[73:108] == TRUE)
+      correct_18 = sum(ms_train$`Actual Schools`[109:144] %in% ms_train$`Predicted Schools`[109:144] == TRUE)
+      cp = sum(correct_15,correct_16,correct_17,correct_18)/144
+      cp
+    }
+    
+    
+    
+    
+    
+    ## Potential Fix to Imbalance (TBD)
+    down_train_1 <- downSample(x = train_1[, colnames(train_1) %ni% "`Make Tournament`"],
+                               y = train_1$`Make Tournament`)
+    table(down_train_1$`Make Tournament`)
+    up_train_1 <- upSample(x = train_1[, colnames(train_1) %ni% "`Make Tournament`"],
+                           y = train_1$`Make Tournament`)
+    table(up_train_1$`Make Tournament`)
+    
+    

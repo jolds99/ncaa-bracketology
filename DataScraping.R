@@ -1,11 +1,12 @@
 ## Load Packages
-library(rvest)
 library(RCurl)
-library(XML)
+library(rvest)
+library(xml)
 library(tidyverse)
 library(ggplot2)
 library(rjson)
 library(R.utils)
+library(httr)
 
 ## Forming MASTER Datasets, organized by year 
 
@@ -38,27 +39,31 @@ library(R.utils)
     data_2016 = create_data_function("JSON Data Files/20160312_team_results.json")
     data_2015 = create_data_function("JSON Data Files/20150314_team_results.json")
     
-  ## Using SportsReference data to add other variables
-  load_sr_names_function = function(x){
-  url = getURL(x)
-  sr_url = readHTMLTable(url)
-  sr_url = sr_url[["adv_school_stats"]]
-  sr = sr_url[,2]
+  ## Using SportsReference data to add other variables (www.sportsreference.com/cbb)
+    
+  sr_2020 = read_csv("SR CSV Data Files/2020SRData.csv")
+  sr_2019 = read_csv("SR CSV Data Files/2019SRData.csv")
+  sr_2018 = read_csv("SR CSV Data Files/2018SRData.csv")
+  sr_2017 = read_csv("SR CSV Data Files/2017SRData.csv")
+  sr_2016 = read_csv("SR CSV Data Files/2016SRData.csv")
+  sr_2015 = read_csv("SR CSV Data Files/2015SRData.csv")
+  
+  clean_sr_function = function(x){
+  sr = x[,2]
   sr = as.data.frame(sr)
-  sr = sr[-c(21,22,43,44,65,66,87,88,109,110,131,132,153,154,175,176,197,198,219,220,241,242,263,264,285,286,307,308,329,330,351,352,373,374),]
+  sr = sr[-1,]
   sr = as.data.frame(sr)
   colnames(sr)[1] = "School"
   sr$School = as.character(sr$School)
-  sr 
+  sr
   }
-
-  sr_2020 = load_sr_names_function('https://www.sports-reference.com/cbb/seasons/2020-advanced-school-stats.html')
-  sr_2019 = load_sr_names_function('https://www.sports-reference.com/cbb/seasons/2019-advanced-school-stats.html')
-  sr_2018 = load_sr_names_function('https://www.sports-reference.com/cbb/seasons/2018-advanced-school-stats.html')
-  sr_2017 = load_sr_names_function('https://www.sports-reference.com/cbb/seasons/2017-advanced-school-stats.html')
-  sr_2016 = load_sr_names_function('https://www.sports-reference.com/cbb/seasons/2016-advanced-school-stats.html')
-  sr_2015 = load_sr_names_function('https://www.sports-reference.com/cbb/seasons/2015-advanced-school-stats.html')
-
+  
+  sr_2020 = clean_sr_function(sr_2020)
+  sr_2019 = clean_sr_function(sr_2019)
+  sr_2018 = clean_sr_function(sr_2018)
+  sr_2017 = clean_sr_function(sr_2017)
+  sr_2016 = clean_sr_function(sr_2016)
+  sr_2015 = clean_sr_function(sr_2015)
 
   ## Add Made Tournament Variable
   sr_2020$`Make Tournament` = rep(NA, length(sr_2020$School))
@@ -102,6 +107,10 @@ library(R.utils)
       x[i] = gsub("NCAA", "", x[i])
       x[i] = str_trim(x[i], "right")
     }
+    for(i in 1:length(x)){
+      x[i] = gsub("愼㸰", "", x[i])
+      x[i] = str_trim(x[i], "right")
+    }
     z$School = x
     z
   }
@@ -122,10 +131,13 @@ library(R.utils)
   sr_2015$`Conference Champ` = rep(0, length(sr_2015$School))
   
   conference_champ_url_function = function(x){
-  url = getURL(x)
-  champ_url = readHTMLTable(url)
-  champ = champ_url[["conference-summary"]]
-  champ = champ[,c(12,13)] 
+  url = GET(x)
+  xml = content(url, as = "parsed")
+  node = html_node(xml, "table")
+  table = html_table(node)
+  champ = table[,13] 
+  champ = as.data.frame(champ)
+  colnames(champ)[1] = "Tournament Champ"
   champ$`Tournament Champ` = as.character(champ$`Tournament Champ`)
   champ
   }
@@ -137,9 +149,11 @@ library(R.utils)
   champ_2015 = conference_champ_url_function('https://www.sports-reference.com/cbb/seasons/2015.html')
 
       ## Fixing minor issues with data
+      champ_2015[16,1] = "Harvard"
       champ_2015 = champ_2015[-18,]
-      champ_2015[16,2] = "Harvard"
-      champ_2016[15,2] = "Yale"
+      champ_2015 = as.data.frame(champ_2015)
+      colnames(champ_2015) = "Tournament Champ"
+      champ_2016[15,1] = "Yale"
 
   conference_champ_function = function(a,b){
     x = a$`Tournament Champ`
@@ -179,9 +193,11 @@ library(R.utils)
   sr_2015$`Last 12 Wins` = rep(NA, length(sr_2015$School))
 
   last_12_function = function(x){
-  url = getURL(x)
-  games_url = readHTMLTable(url)
-  games = games_url[["schedule"]]
+  url = GET(x)
+  xml = content(url, as = "parsed")
+  node = html_nodes(xml, "table")
+  table = html_table(node)
+  games = table[[2]]
   games = games[, c(4,8)]
   colnames(games) = c("Type", "Result")
   games$Type = as.character(games$Type)
@@ -436,10 +452,12 @@ library(R.utils)
   }
   
   conference_standings_url_function = function(x){
-    url = getURL(x)
-    champ_url = readHTMLTable(url)
-    champ = champ_url[["standings"]]
-    champ = champ[,c(1,2)]
+    url = GET(x)
+    xml = content(url, as = "parsed")
+    node = html_nodes(xml, "table")
+    table = html_table(node)
+    champ = table[[1]]
+    champ = champ[-1,c(1,2)]
     colnames(champ) = c("Rk", "School")
     x = grep("Rk", champ$Rk, invert = TRUE)
     champ = champ[x,]
@@ -964,6 +982,77 @@ library(R.utils)
     colnames(data_2015)[1] = "School"
     full_2015 = merge(sr_2015,data_2015, by = "School")
     
+    ## Modifications to full data sets
+    colnames(full_2015)[15] = "T-Rank"
+    colnames(full_2016)[15] = "T-Rank"
+    colnames(full_2017)[15] = "T-Rank"
+    colnames(full_2018)[15] = "T-Rank"
+    colnames(full_2019)[15] = "T-Rank"
+    colnames(full_2020)[15] = "T-Rank"
+    
+    full_2015$`Make Tournament` = as.factor(full_2015$`Make Tournament`)
+    full_2016$`Make Tournament` = as.factor(full_2016$`Make Tournament`)
+    full_2017$`Make Tournament` = as.factor(full_2017$`Make Tournament`)
+    full_2018$`Make Tournament` = as.factor(full_2018$`Make Tournament`)
+    full_2019$`Make Tournament` = as.factor(full_2019$`Make Tournament`)
+    
+    full_2020$Wins = stringr::word(full_2020$Record, 1, sep = "-")
+    full_2020$Wins = as.numeric(full_2020$Wins)
+    full_2020$Losses = stringr::word(full_2020$Record, -1, sep = "-")
+    full_2020$Losses = as.numeric(full_2020$Losses)
+    full_2020 = full_2020[,c(1:9,23,24,10:22)]
+    
+    full_2019$Wins = stringr::word(full_2019$Record, 1, sep = "-")
+    full_2019$Wins = as.numeric(full_2019$Wins)
+    full_2019$Losses = stringr::word(full_2019$Record, -1, sep = "-")
+    full_2019$Losses = as.numeric(full_2019$Losses)
+    full_2019 = full_2019[,c(1:9,23,24,10:22)]
+    
+    full_2018$Wins = stringr::word(full_2018$Record, 1, sep = "-")
+    full_2018$Wins = as.numeric(full_2018$Wins)
+    full_2018$Losses = stringr::word(full_2018$Record, -1, sep = "-")
+    full_2018$Losses = as.numeric(full_2018$Losses)
+    full_2018 = full_2018[,c(1:9,23,24,10:22)]
+    
+    full_2017$Wins = stringr::word(full_2017$Record, 1, sep = "-")
+    full_2017$Wins = as.numeric(full_2017$Wins)
+    full_2017$Losses = stringr::word(full_2017$Record, -1, sep = "-")
+    full_2017$Losses = as.numeric(full_2017$Losses)
+    full_2017 = full_2017[,c(1:9,23,24,10:22)]
+    
+    full_2016$Wins = stringr::word(full_2016$Record, 1, sep = "-")
+    full_2016$Wins = as.numeric(full_2016$Wins)
+    full_2016$Losses = stringr::word(full_2016$Record, -1, sep = "-")
+    full_2016$Losses = as.numeric(full_2016$Losses)
+    full_2016 = full_2016[,c(1:9,23,24,10:22)]
+    
+    full_2015$Wins = stringr::word(full_2015$Record, 1, sep = "-")
+    full_2015$Wins = as.numeric(full_2015$Wins)
+    full_2015$Losses = stringr::word(full_2015$Record, -1, sep = "-")
+    full_2015$Losses = as.numeric(full_2015$Losses)
+    full_2015 = full_2015[,c(1:9,23,24,10:22)]
+    
+    full_2020$`Efficiency Rank Avg`= (full_2020$`OE Rank` + full_2020$`DE Rank`)/2
+    full_2019$`Efficiency Rank Avg`= (full_2019$`OE Rank` + full_2019$`DE Rank`)/2
+    full_2018$`Efficiency Rank Avg`= (full_2018$`OE Rank` + full_2018$`DE Rank`)/2
+    full_2017$`Efficiency Rank Avg`= (full_2017$`OE Rank` + full_2017$`DE Rank`)/2
+    full_2016$`Efficiency Rank Avg`= (full_2016$`OE Rank` + full_2016$`DE Rank`)/2
+    full_2015$`Efficiency Rank Avg`= (full_2015$`OE Rank` + full_2015$`DE Rank`)/2
+    
+    full_2020$`Efficiency Avg`= (full_2020$`Adj. Offensive Efficiency` + full_2020$`Adj. Defensive Efficiency`)/2
+    full_2019$`Efficiency Avg`= (full_2019$`Adj. Offensive Efficiency` + full_2019$`Adj. Defensive Efficiency`)/2
+    full_2018$`Efficiency Avg`= (full_2018$`Adj. Offensive Efficiency` + full_2018$`Adj. Defensive Efficiency`)/2
+    full_2017$`Efficiency Avg`= (full_2017$`Adj. Offensive Efficiency` + full_2017$`Adj. Defensive Efficiency`)/2
+    full_2016$`Efficiency Avg`= (full_2016$`Adj. Offensive Efficiency` + full_2016$`Adj. Defensive Efficiency`)/2
+    full_2015$`Efficiency Avg`= (full_2015$`Adj. Offensive Efficiency` + full_2015$`Adj. Defensive Efficiency`)/2
+    
+    full_2015$Season = 2015
+    full_2016$Season = 2016
+    full_2017$Season = 2017
+    full_2018$Season = 2018
+    full_2019$Season = 2019
+    full_2020$Season = 2020
+  
     write_csv(full_2015, "Full CSV Data Files/full_2015.csv")
     write_csv(full_2016, "Full CSV Data Files/full_2016.csv")
     write_csv(full_2017, "Full CSV Data Files/full_2017.csv")

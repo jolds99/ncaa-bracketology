@@ -1,5 +1,7 @@
 ## Load Packages
 library(ggplot2)
+library(tidyverse)
+library(dplyr)
 
 ## Load Full Datasets
 full_2015 = read_csv("Full CSV Data Files/full_2015.csv")
@@ -9,52 +11,24 @@ full_2018 = read_csv("Full CSV Data Files/full_2018.csv")
 full_2019 = read_csv("Full CSV Data Files/full_2019.csv")
 full_2020 = read_csv("Full CSV Data Files/full_2020.csv")
 
-## Modifications to full data sets
-colnames(full_2015)[15] = "T-Rank"
-colnames(full_2016)[15] = "T-Rank"
-colnames(full_2017)[15] = "T-Rank"
-colnames(full_2018)[15] = "T-Rank"
-colnames(full_2019)[15] = "T-Rank"
-colnames(full_2020)[15] = "T-Rank"
-
-full_2015$`Make Tournament` = as.factor(full_2015$`Make Tournament`)
-full_2016$`Make Tournament` = as.factor(full_2016$`Make Tournament`)
-full_2017$`Make Tournament` = as.factor(full_2017$`Make Tournament`)
-full_2018$`Make Tournament` = as.factor(full_2018$`Make Tournament`)
-full_2019$`Make Tournament` = as.factor(full_2019$`Make Tournament`)
-
-full_2020$Wins = stringr::word(full_2020$Record, 1, sep = "-")
-full_2020$Losses = stringr::word(full_2020$Record, -1, sep = "-")
-full_2020 = full_2020[,c(1:9,23,24,10:22)]
-
-full_2019$Wins = stringr::word(full_2019$Record, 1, sep = "-")
-full_2019$Losses = stringr::word(full_2019$Record, -1, sep = "-")
-full_2019 = full_2019[,c(1:9,23,24,10:22)]
-
-full_2018$Wins = stringr::word(full_2018$Record, 1, sep = "-")
-full_2018$Losses = stringr::word(full_2018$Record, -1, sep = "-")
-full_2018 = full_2018[,c(1:9,23,24,10:22)]
-
-full_2017$Wins = stringr::word(full_2017$Record, 1, sep = "-")
-full_2017$Losses = stringr::word(full_2017$Record, -1, sep = "-")
-full_2017 = full_2017[,c(1:9,23,24,10:22)]
-
-full_2016$Wins = stringr::word(full_2016$Record, 1, sep = "-")
-full_2016$Losses = stringr::word(full_2016$Record, -1, sep = "-")
-full_2016 = full_2016[,c(1:9,23,24,10:22)]
-
-full_2015$Wins = stringr::word(full_2015$Record, 1, sep = "-")
-full_2015$Losses = stringr::word(full_2015$Record, -1, sep = "-")
-full_2015 = full_2015[,c(1:9,23,24,10:22)]
-
-full_2020$`Efficiency Avg`= (full_2020$`OE Rank` + full_2020$`DE Rank`)/2
-full_2019$`Efficiency Avg`= (full_2019$`OE Rank` + full_2019$`DE Rank`)/2
-full_2018$`Efficiency Avg`= (full_2018$`OE Rank` + full_2018$`DE Rank`)/2
-full_2017$`Efficiency Avg`= (full_2017$`OE Rank` + full_2017$`DE Rank`)/2
-full_2016$`Efficiency Avg`= (full_2016$`OE Rank` + full_2016$`DE Rank`)/2
-full_2015$`Efficiency Avg`= (full_2015$`OE Rank` + full_2015$`DE Rank`)/2
 ## 2015-2019 Data Merged
 alldata = rbind(full_2015,full_2016,full_2017,full_2018,full_2019)
+alldata$`Make Tournament`= as.factor(alldata$`Make Tournament`)
+alldata$`Conference Champ` = as.factor(alldata$`Conference Champ`)
+str(alldata) 
+
+table1 =  alldata %>% 
+  group_by(`Make Tournament`) %>% 
+  summarise_at(vars(`Last 12 Wins`, `Conference Finish`, `RPI Rank`,
+                    `NET Rank`, `Wins`, `T-Rank`, SOS, `Non-Conf SOS`,
+                    `Conference Win %`, `Wins Above Bubble`, `WAB Rank`),list(name = mean))
+table1
+colnames(table1)[2:8] = c("Last 12 Wins", "Conference Finish", "RPI Rank",
+                          "NET Rank", "Wins", "T-Rank", "SOS")
+
+cors = cor(alldata[,c(4:6,10,17,19:25)])
+round(cors,2)
+cors = as.data.frame(cors)
 
 ## RPI vs T-Rank 
 ggplot(full_2015, aes(x = `T-Rank`, y = `RPI Rank`)) + geom_point() +
@@ -85,6 +59,8 @@ ggplot(full_2020, aes(x = `T-Rank`, y = `NET Rank`)) + geom_point() +
 
 cor.test(full_2020$`NET Rank`, full_2020$`T-Rank`)
 cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
+
+  ## Correlation between RPI and T-Rank is ~ .94, correlation between NET and T-Rank is ~ .98
 
 ## Last 12 Wins vs. Make Tournament
     ## Separated by Year
@@ -155,6 +131,8 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
     ggplot(ConfData, aes(x = Conference, fill = `Make Tournament`)) + geom_bar() + 
       scale_fill_manual(values=c("dark orange", "black")) + 
       geom_text(aes(y = `In Tournament` + 2,label = paste(Probability,"%",sep = "")),color = "black", size = 2.5)
+    ggplot(ConfData, aes(x = Conference, fill = `Make Tournament`)) + 
+      geom_bar(position = position_dodge()) + scale_fill_manual(values=c("dark orange", "black"))
     
     ## Wins
     WinsData = select(alldata, School, Wins, `Make Tournament`)
@@ -167,7 +145,8 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
     ggplot(WinsData, aes(x = Wins, fill = `Make Tournament`)) + geom_bar() + 
       scale_fill_manual(values=c("dark orange", "black")) + 
       geom_text(aes(y = `In Tournament` + 2,label = paste(Probability,"%",sep = "")),color = "black", size = 2.25)
-
+    ggplot(alldata, aes(x = Wins)) + geom_histogram(binwidth = 5)
+    
     ## OE Rank
     ggplot(full_2019, aes(x = `OE Rank`, y = `Make Tournament`)) + geom_point() 
     ggplot(full_2018, aes(x = `OE Rank`, y = `Make Tournament`)) + geom_point() 
@@ -215,6 +194,7 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
              Probability = round(`In Tournament`/(`In Tournament` + `Miss Tournament`),3)*100) 
     ggplot(EffAvgData, aes(x = `Efficiency Avg`, fill = `Make Tournament`)) + geom_bar() + 
       scale_fill_manual(values=c("dark orange", "black"))
+    ggplot(EffAvgData, aes(x = `Efficiency Avg`, y = `Make Tournament`)) + geom_point()
     
     ## T-Rank 
     ggplot(full_2019, aes(x = `T-Rank`, y = `Make Tournament`)) + geom_point() 
@@ -298,9 +278,8 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
     ggplot(WABData, aes(x = `WAB Rank`, fill = `Make Tournament`)) + geom_bar() + 
       scale_fill_manual(values=c("dark orange", "black")) 
     
+
     
-    ## Variables that look significant:
-    ## RPI, Conference Champ, Wins, Efficiency Rank Avg, T-Rank, SOS, Conf Win %, WAB Rank
-    
-    ## Other variables of interest:
-    ## Last 12 Wins, Conference Finish, Conference
+
+  
+  
