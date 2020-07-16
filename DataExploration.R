@@ -23,12 +23,9 @@ table1 =  alldata %>%
                     `NET Rank`, `Wins`, `T-Rank`, SOS, `Non-Conf SOS`,
                     `Conference Win %`, `Wins Above Bubble`, `WAB Rank`),list(name = mean))
 table1
-colnames(table1)[2:8] = c("Last 12 Wins", "Conference Finish", "RPI Rank",
-                          "NET Rank", "Wins", "T-Rank", "SOS")
-
-cors = cor(alldata[,c(4:6,10,17,19:25)])
-round(cors,2)
-cors = as.data.frame(cors)
+colnames(table1)[2:12] = c("Last 12 Wins", "Conference Finish", "RPI Rank",
+                          "NET Rank", "Wins", "T-Rank", "SOS", "Non-Conf SOS", 
+                          "Conference Win %", "Wins Above Bubble", "WAB Rank")
 
 ## RPI vs T-Rank 
 ggplot(full_2015, aes(x = `T-Rank`, y = `RPI Rank`)) + geom_point() +
@@ -179,7 +176,7 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
     ggplot(DEData, aes(x = `DE Rank`, fill = `Make Tournament`)) + geom_bar() + 
       scale_fill_manual(values=c("dark orange", "black"))
     
-    ## Efficiency Avg Rank
+    ## Efficiency Avg 
     ggplot(full_2019, aes(x = `Efficiency Avg`, y = `Make Tournament`)) + geom_point() 
     ggplot(full_2018, aes(x = `Efficiency Avg`, y = `Make Tournament`)) + geom_point() 
     ggplot(full_2017, aes(x = `Efficiency Avg`, y = `Make Tournament`)) + geom_point() 
@@ -192,9 +189,24 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
       mutate(`In Tournament` = sum(`Make Tournament` == 1),
              `Miss Tournament` = sum(`Make Tournament` == 0),
              Probability = round(`In Tournament`/(`In Tournament` + `Miss Tournament`),3)*100) 
-    ggplot(EffAvgData, aes(x = `Efficiency Avg`, fill = `Make Tournament`)) + geom_bar() + 
+    ggplot(EffAvgData, aes(x = `Efficiency Avg`, fill = `Make Tournament`)) + geom_histogram(bins = 15) + 
       scale_fill_manual(values=c("dark orange", "black"))
     ggplot(EffAvgData, aes(x = `Efficiency Avg`, y = `Make Tournament`)) + geom_point()
+    
+    ## Efficiency Rank Avg
+    ggplot(full_2019, aes(x = `Efficiency Rank Avg`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2018, aes(x = `Efficiency Rank Avg`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2017, aes(x = `Efficiency Rank Avg`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2016, aes(x = `Efficiency Rank Avg`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2015, aes(x = `Efficiency Rank Avg`, y = `Make Tournament`)) + geom_point() 
+    
+    EffRankAvgData = select(alldata, School, `Efficiency Rank Avg`, `Make Tournament`)
+    EffRankAvgData = EffRankAvgData %>%
+      group_by(`Efficiency Rank Avg`) %>%
+      mutate(`In Tournament` = sum(`Make Tournament` == 1),
+             `Miss Tournament` = sum(`Make Tournament` == 0),
+             Probability = round(`In Tournament`/(`In Tournament` + `Miss Tournament`),3)*100) 
+    ggplot(EffRankAvgData, aes(x = `Efficiency Rank Avg`, y = `Make Tournament`)) + geom_point()
     
     ## T-Rank 
     ggplot(full_2019, aes(x = `T-Rank`, y = `Make Tournament`)) + geom_point() 
@@ -212,6 +224,22 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
     ggplot(TRankData, aes(x = `T-Rank`, fill = `Make Tournament`)) + geom_bar() + 
       scale_fill_manual(values=c("dark orange", "black")) 
     
+    ## Barthag
+    ggplot(full_2019, aes(x = `Barthag`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2018, aes(x = `Barthag`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2017, aes(x = `Barthag`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2016, aes(x = `Barthag`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2015, aes(x = `Barthag`, y = `Make Tournament`)) + geom_point() 
+    
+    BarthagData = select(alldata, School, Barthag, `Make Tournament`)
+    BarthagData = BarthagData %>%
+      group_by(Barthag) %>%
+      mutate(`In Tournament` = sum(`Make Tournament` == 1),
+             `Miss Tournament` = sum(`Make Tournament` == 0),
+             Probability = round(`In Tournament`/(`In Tournament` + `Miss Tournament`),3)*100) 
+    ggplot(BarthagData, aes(x = Barthag, fill = `Make Tournament`)) + geom_histogram(bins = 15) + 
+      scale_fill_manual(values=c("dark orange", "black")) 
+    
     ## SOS 
     ggplot(full_2019, aes(x = `SOS`, y = `Make Tournament`)) + geom_point() + 
       scale_x_continuous(limits=c(0.2,0.9))
@@ -224,8 +252,8 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
     ggplot(full_2015, aes(x = `SOS`, y = `Make Tournament`)) + geom_point() + 
       scale_x_continuous(limits=c(0.2,0.9))
     
-    ggplot(alldata, aes(x = `SOS`, y = `Make Tournament`)) + geom_point() + 
-      scale_x_continuous(limits=c(0.2,0.9)) + geom_jitter(height = 0.2)
+    ggplot(alldata, aes(x = SOS, fill = `Make Tournament`)) + geom_histogram(bins = 12) + 
+      scale_fill_manual(values=c("dark orange", "black")) 
     
     ## Non-Conf SOS 
     ggplot(full_2019, aes(x = `Non-Conf SOS`, y = `Make Tournament`)) + geom_point() + 
@@ -239,8 +267,23 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
     ggplot(full_2015, aes(x = `Non-Conf SOS`, y = `Make Tournament`)) + geom_point() + 
       scale_x_continuous(limits=c(0.2,0.9))
     
-    ggplot(alldata, aes(x = `Non-Conf SOS`, y = `Make Tournament`)) + geom_point() + 
-      scale_x_continuous(limits=c(0.2,0.9)) + geom_jitter(height = 0.2)
+    ggplot(alldata, aes(x = `Non-Conf SOS`, fill = `Make Tournament`)) + geom_histogram(bins = 12) + 
+      scale_fill_manual(values=c("dark orange", "black")) 
+    
+    ## Conference SOS 
+    ggplot(full_2019, aes(x = `Conference SOS`, y = `Make Tournament`)) + geom_point() + 
+      scale_x_continuous(limits=c(0.1,0.9))
+    ggplot(full_2018, aes(x = `Conference SOS`, y = `Make Tournament`)) + geom_point() + 
+      scale_x_continuous(limits=c(0.1,0.9)) 
+    ggplot(full_2017, aes(x = `Conference SOS`, y = `Make Tournament`)) + geom_point() + 
+      scale_x_continuous(limits=c(0.1,0.9)) 
+    ggplot(full_2016, aes(x = `Conference SOS`, y = `Make Tournament`)) + geom_point() + 
+      scale_x_continuous(limits=c(0.1,0.9))
+    ggplot(full_2015, aes(x = `Conference SOS`, y = `Make Tournament`)) + geom_point() + 
+      scale_x_continuous(limits=c(0.0,1))
+    
+    ggplot(alldata, aes(x = `Conference SOS`, fill = `Make Tournament`)) + geom_histogram(bins = 8) + 
+      scale_fill_manual(values=c("dark orange", "black")) 
     
     ## Conference Record
     ggplot(full_2019, aes(x = `Conference Win %`, y = `Make Tournament`)) + geom_point() + 
@@ -254,8 +297,8 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
     ggplot(full_2015, aes(x = `Conference Win %`, y = `Make Tournament`)) + geom_point() + 
       scale_x_continuous(limits=c(0,1))
     
-    ggplot(alldata, aes(x = `Conference Win %`, y = `Make Tournament`)) + geom_point() + 
-      scale_x_continuous(limits=c(-0.1,1.1)) + geom_jitter(height = 0.2)
+    ggplot(alldata, aes(x = `Conference Win %`, fill = `Make Tournament`)) + geom_histogram(bins = 12) + 
+      scale_fill_manual(values=c("dark orange", "black")) 
     
     ## Wins Above Bubble 
     ggplot(full_2019, aes(x = `Wins Above Bubble`, y = `Make Tournament`)) + geom_point() + 
