@@ -1,7 +1,7 @@
 ## Load Packages
 library(RCurl)
 library(rvest)
-library(xml)
+library(XML)
 library(tidyverse)
 library(ggplot2)
 library(rjson)
@@ -823,7 +823,7 @@ library(httr)
     dictionary_net_2020[308,2] = "UMBC"
     dictionary_net_2020[312,2] = "California"
   
-    setdiff(net_2020$Team, dictionary_net$b)
+    setdiff(net_2020$Team, dictionary_net_2020$b)
     
     ## Merge data
     net_2020 = order_team_names_function(net_2020,dictionary_net_2020,sr_2020)
@@ -853,7 +853,7 @@ library(httr)
   sr_2016$`NET Rank` = rep(NA,351)
   sr_2017$`NET Rank` = rep(NA,351)
   sr_2018$`NET Rank` = rep(NA,351)
-
+  
   ## Merging data_year with sr_year
   create_merge_dictionary_function = function(x,y){ #x = sr_year$School, y = data_year$Team
     library(stringdist)
