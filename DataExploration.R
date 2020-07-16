@@ -207,6 +207,8 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
              `Miss Tournament` = sum(`Make Tournament` == 0),
              Probability = round(`In Tournament`/(`In Tournament` + `Miss Tournament`),3)*100) 
     ggplot(EffRankAvgData, aes(x = `Efficiency Rank Avg`, y = `Make Tournament`)) + geom_point()
+    ggplot(EffRankAvgData, aes(x = `Efficiency Rank Avg`, fill = `Make Tournament`)) + geom_histogram(bins = 15) + 
+      scale_fill_manual(values=c("dark orange", "black"))
     
     ## T-Rank 
     ggplot(full_2019, aes(x = `T-Rank`, y = `Make Tournament`)) + geom_point() 
