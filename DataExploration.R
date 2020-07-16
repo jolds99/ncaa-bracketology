@@ -144,36 +144,36 @@ cor.test(full_2019$`NET Rank`, full_2019$`T-Rank`)
       geom_text(aes(y = `In Tournament` + 2,label = paste(Probability,"%",sep = "")),color = "black", size = 2.25)
     ggplot(alldata, aes(x = Wins)) + geom_histogram(binwidth = 5)
     
-    ## OE Rank
-    ggplot(full_2019, aes(x = `OE Rank`, y = `Make Tournament`)) + geom_point() 
-    ggplot(full_2018, aes(x = `OE Rank`, y = `Make Tournament`)) + geom_point() 
-    ggplot(full_2017, aes(x = `OE Rank`, y = `Make Tournament`)) + geom_point() 
-    ggplot(full_2016, aes(x = `OE Rank`, y = `Make Tournament`)) + geom_point() 
-    ggplot(full_2015, aes(x = `OE Rank`, y = `Make Tournament`)) + geom_point() 
+    ## Offensive Efficiency
+    ggplot(full_2019, aes(x = `Adj. Offensive Efficiency`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2018, aes(x = `Adj. Offensive Efficiency`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2017, aes(x = `Adj. Offensive Efficiency`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2016, aes(x = `Adj. Offensive Efficiency`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2015, aes(x = `Adj. Offensive Efficiency`, y = `Make Tournament`)) + geom_point() 
     
-    OEData = select(alldata, School, `OE Rank`, `Make Tournament`)
+    OEData = select(alldata, School, `Adj. Offensive Efficiency`, `Make Tournament`)
     OEData = OEData %>%
-      group_by(`OE Rank`) %>%
+      group_by(`Adj. Offensive Efficiency`) %>%
       mutate(`In Tournament` = sum(`Make Tournament` == 1),
              `Miss Tournament` = sum(`Make Tournament` == 0),
              Probability = round(`In Tournament`/(`In Tournament` + `Miss Tournament`),3)*100) 
-    ggplot(OEData, aes(x = `OE Rank`, fill = `Make Tournament`)) + geom_bar() + 
+    ggplot(OEData, aes(x = `Adj. Offensive Efficiency`, fill = `Make Tournament`)) + geom_histogram(bins = 10) + 
       scale_fill_manual(values=c("dark orange", "black")) 
     
-    ## DE Rank
-    ggplot(full_2019, aes(x = `DE Rank`, y = `Make Tournament`)) + geom_point() 
-    ggplot(full_2018, aes(x = `DE Rank`, y = `Make Tournament`)) + geom_point() 
-    ggplot(full_2017, aes(x = `DE Rank`, y = `Make Tournament`)) + geom_point() 
-    ggplot(full_2016, aes(x = `DE Rank`, y = `Make Tournament`)) + geom_point() 
-    ggplot(full_2015, aes(x = `DE Rank`, y = `Make Tournament`)) + geom_point() 
+    ## Defensive Efficiency Rank
+    ggplot(full_2019, aes(x = `Adj. Defensive Efficiency`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2018, aes(x = `Adj. Defensive Efficiency`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2017, aes(x = `Adj. Defensive Efficiency`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2016, aes(x = `Adj. Defensive Efficiency`, y = `Make Tournament`)) + geom_point() 
+    ggplot(full_2015, aes(x = `Adj. Defensive Efficiency`, y = `Make Tournament`)) + geom_point() 
     
-    DEData = select(alldata, School, `DE Rank`, `Make Tournament`)
+    DEData = select(alldata, School, `Adj. Defensive Efficiency`, `Make Tournament`)
     DEData = DEData %>%
-      group_by(`DE Rank`) %>%
+      group_by(`Adj. Defensive Efficiency`) %>%
       mutate(`In Tournament` = sum(`Make Tournament` == 1),
              `Miss Tournament` = sum(`Make Tournament` == 0),
              Probability = round(`In Tournament`/(`In Tournament` + `Miss Tournament`),3)*100) 
-    ggplot(DEData, aes(x = `DE Rank`, fill = `Make Tournament`)) + geom_bar() + 
+    ggplot(DEData, aes(x = `Adj. Defensive Efficiency`, fill = `Make Tournament`)) + geom_histogram(bins = 10) + 
       scale_fill_manual(values=c("dark orange", "black"))
     
     ## Efficiency Avg 
