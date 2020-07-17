@@ -1,9 +1,6 @@
-## Non-Conf Data by Year
-ncc_2015 = nccdata %>% filter(Season == 2015)
-ncc_2016 = nccdata %>% filter(Season == 2016)
-ncc_2017 = nccdata %>% filter(Season == 2017)
-ncc_2018 = nccdata %>% filter(Season == 2018)
-ncc_2019 = nccdata %>% filter(Season == 2019)
+## Load Packages
+library(tree)
+library(rpart)
 
 ## Table comparing variable averages grouped by if made tournament
 ncctable =  nccdata %>% 
@@ -185,7 +182,6 @@ decision_tree1 = function(x){
   x
 }
 
-
 ## Calculating results for each year
 
 victory_2015 = decision_tree1(combo2015)
@@ -246,3 +242,27 @@ mean(act2019$School %in% pre2019 == TRUE)
 
 length(which(is.na(victory_2019$Victory)))
 length(which(is.na(victory_2019$Victory) == FALSE))
+
+## Testing Third Reduced Model (See Logistic Regression Script) with Tree & Rpart Packages
+tree.test = tree(`Make Tournament` ~ ConfFinish + RPI + Barthag +
+                    SOS + NonConfSOS + ConfSOS + ConfWinP + WAB, tree_train)
+plot(tree.test)
+text(tree.test, pretty = 0)
+tree.pred = predict(tree.test, tree_test, type="class")
+with(tree_test, table(tree.pred, `Make Tournament`))
+
+tree_train = train_2
+colnames(tree_train)[c(4,5,6,16,20,21,22,23,26)] = c("Last12", "ConfFinish", "RPI", "Barthag", "NonConfSOS", "ConfSOS", "ConfWinP", "WAB", "EffAvg")
+tree_test = test_2
+colnames(tree_test)[c(4,5,6,16,20,21,22,23,26)] = c("Last12", "ConfFinish", "RPI", "Barthag", "NonConfSOS", "ConfSOS", "ConfWinP", "WAB", "EffAvg")
+
+rparttest = rpart(`Make Tournament` ~ `Conference Finish` +`RPI Rank`+ Barthag
+                  + SOS + `Non-Conf SOS` + `Conference SOS` + `Conference Win %` + `Wins Above Bubble`, 
+                  data = train_2, method = "class")
+plot(rparttest)
+text(rparttest, use.n=TRUE, all=TRUE, cex=0.8)
+
+rpart.pred = predict(rparttest, test_2, type="class")
+with(test_2, table(rpart.pred, `Make Tournament`))
+
+
