@@ -482,7 +482,7 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
       cp = sum(correct_15,correct_16,correct_17,correct_18)/144
       cp
     }
-    
+  
     calc_glmnet_test_probs = function(model,s){
       p = predict(model, newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), s , type = "response")
       predictions = as.data.frame(cbind(test_2$School,p))
@@ -558,6 +558,5 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
               geom_point() + labs(color = "Season") + ggtitle("Coefficient Values of Each Variable in CV.GLMNET Model By Season") + theme(plot.title = element_text(hjust = 0.5)) + 
               scale_color_gradient() + geom_text_repel(direction = "y", force = 2, nudge_x = 1, aes(label = ifelse(Variable == "SOS",Season,"")), size = 3) + 
               theme(legend.position = "none")
-    
-   
+  
     
