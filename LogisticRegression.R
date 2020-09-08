@@ -9,29 +9,8 @@ library(corrplot)
 library(ROCR)
 library(Hmisc)
 library(ggrepel)
-
-## Creating data frame without conference champs
-nccdata = alldata %>% filter(`Conference Champ` != 1)
-nccdata = nccdata[-c(454,574),]
-
-## Adding Indicator for if team is in Power 5 Conference
-nccdata$Power5 = rep(NA, length(nccdata$School))
-for(i in 1:length(nccdata$School)){
-  if(nccdata$Conference[i] == "SEC" || nccdata$Conference[i] == "P12" ||
-     nccdata$Conference[i] == "B12" || nccdata$Conference[i] == "B10" || 
-     nccdata$Conference[i] == "ACC"){
-    nccdata$Power5[i] = 1
-  }
-  else{
-    nccdata$Power5[i] = 0
-  }
-}
-
-## Adding Win Percentage Variable 
-nccdata$`Win Percentage` = rep(NA, length(nccdata$School))
-for(i in 1:length(nccdata$School)){
-  nccdata$`Win Percentage`[i] = round(nccdata$Wins[i]/sum(nccdata$Wins[i],nccdata$Losses[i]),3)
-}
+library(glmnet)
+library(knitr)
 
 ## Creating data frame of just conference champs
 ccdata = alldata %>% filter(`Conference Champ` == 1)
@@ -40,13 +19,6 @@ ccdata = alldata %>% filter(`Conference Champ` == 1)
 ## Test = 2019 Season, no Conference Champs
 train_2 = nccdata %>% filter(Season != 2019)
 test_2 = nccdata %>% filter(Season == 2019)
-
-## Non-Conf Data by Year
-ncc_2015 = nccdata %>% filter(Season == 2015)
-ncc_2016 = nccdata %>% filter(Season == 2016)
-ncc_2017 = nccdata %>% filter(Season == 2017)
-ncc_2018 = nccdata %>% filter(Season == 2018)
-ncc_2019 = nccdata %>% filter(Season == 2019)
 
 ## Bivariate Correlations
 cors = cor(nccdata[,c(4:6,10,12,14,16,19:23,25,28,29)])
@@ -123,29 +95,32 @@ coefs = as.data.frame(rbind(coef_L12, coef_CF, coef_RPI, coef_W, coef_AOE, coef_
               coef_SOS, coef_NCSOS, coef_CSOS, coef_CWP, coef_WAB, coef_ERA, coef_P5, coef_WP)) 
     
 coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSOS", "CWP", "WAB", "ERA", "P5", "WP")
-    
+
 ## Building Multi-variate GLM Models
  ## FULL Model - includes all variables because all were univariately significant,
  ## except just used Efficiency Rank average, rather than both offensive and defensive
     
   model_full = glm(`Make Tournament` ~ `Last 12 Wins` +`Conference Finish` + `RPI Rank` + 
-                       Wins + `Efficiency Rank Avg` + Barthag + SOS + `Non-Conf SOS` + 
+                       Wins + `Adj. Offensive Efficiency` + `Adj. Defensive Efficiency` + 
+                       `Efficiency Rank Avg` + Barthag + SOS + `Non-Conf SOS` + 
                        `Conference SOS` + `Conference Win %` + `Wins Above Bubble` + 
                        Power5 + `Win Percentage`,
                        data = train_2, family = binomial)
     summary(model_full)
     vif(model_full)
     
+    ## MUST run functions found near bottom of script
     calc_test_probs(model_full, test_2)
     calc_train_probs(model_full, train_2)
     
     ## First reduced model (only significant variables from full)
     model_reduced1 = glm(`Make Tournament` ~ `RPI Rank` + `Conference SOS`, 
                          data = train_2, family = binomial)
+    
     summary(model_reduced1)
     vif(model_reduced1)
     
-    delta.coef = abs((coef(model_reduced1)-coef(model_full)[-c(2,3,5:9,11:14)])/coef(model_full)[-c(2,3,5:9,11:14)])
+    delta.coef = abs((coef(model_reduced1)-coef(model_full)[-c(2,3,5:11,13:16)])/coef(model_full)[-c(2,3,5:11,13:16)])
     round(delta.coef,3)
     
     anova(model_full,model_reduced1, test = "Chisq")
@@ -161,7 +136,7 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
     summary(model_reduced2)
     vif(model_reduced2)
     
-    delta.coef = abs((coef(model_reduced2)[-c(2:3,5:7,9:10)]-coef(model_full)[-c(2:3,5:9,11:14)])/coef(model_full)[-c(2:3,5:9,11:14)])
+    delta.coef = abs((coef(model_reduced2)[-c(2:3,5:7,9:10)]-coef(model_full)[-c(2:3,5:11,13:16)])/coef(model_full)[-c(2:3,5:11,13:16)])
     round(delta.coef,3)
     
     anova(model_full,model_reduced2, test = "Chisq")
@@ -178,7 +153,7 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
     summary(model_reduced3)
     vif(model_reduced3)
     
-    delta.coef = abs((coef(model_reduced3)[-c(2,4:6,8:9)]-coef(model_full)[-c(2:3,5:9,11:14)])/coef(model_full)[-c(2:3,5:9,11:14)])
+    delta.coef = abs((coef(model_reduced3)[-c(2,4:6,8:9)]-coef(model_full)[-c(2:3,5:11,13:16)])/coef(model_full)[-c(2:3,5:11,13:16)])
     round(delta.coef,3)
     
     anova(model_full,model_reduced3, test = "Chisq")
@@ -196,10 +171,10 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
     
         ## Taking Wins Above Bubble Out
         model_net = glmnet(x = as.matrix(train_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), y = train_2$`Make Tournament`, family = binomial)
-        model_cvnet = cv.glmnet(x = as.matrix(train_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), y = train_2$`Make Tournament`, family = binomial)
+        model_cvnet = cv.glmnet(x = as.matrix(train_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), y = train_2$`Make Tournament`, family = binomial, alpha = 0.5)
       
           ## Load Model - if needed
-          ## model_cvnet = readRDS("Models/CV-GLMNET Model")
+        ## model_cvnet = readRDS("Models/CV-GLMNET Model")
           
   
           model_cvnet$lambda.min
@@ -207,8 +182,21 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
           
           coef(model_cvnet, s = "lambda.min")
           coef(model_cvnet, s = "lambda.1se")
-        
-        
+          
+          ## Creating Table of Coefficient Values
+          cv_coefs = matrix(NA, nrow = 15, ncol = 2)
+          
+          cv_coefs[1:15,1] = c("Intercept", "Last 12 Wins", "Conference Finish", "RPI Rank", 
+                               "Wins", "Adj. Offensive Efficiency", "Adj. Defensive Efficiency", 
+                               "Barthag", "SOS", "Non-Conf SOS", "Conference SOS", "Conference Win %", 
+                               "Efficiency Rank Avg", "Power 5", "Win Percentage")
+          cv_coefs[1:15,2] = c(-20.464, 0.004, -0.200, -0.036, 0.183, 0.154, -0.090,
+                               0.000, 13.952, 0.000, 2.715, 0.000, 0.000, 0.000, 0.000)
+          
+          cv_coefs = as.data.frame(cv_coefs)
+          colnames(cv_coefs) = c("Variable", "Coefficient Value")
+          kable(cv_coefs, format = "latex")
+          
         ## Confusion Matrix, ROC Curve & AUC Calculation
         ptest = predict(model_cvnet, newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), s = "lambda.1se", type = "response")
         for(i in 1:321){
@@ -218,17 +206,17 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
             ptest[i] = 0
           }
         }
-       
+        
         confusion.glmnet(ptest, newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), newy = test_2$`Make Tournament`, family = "binomial")
-
+       
         pred = prediction(ptest, test_2$`Make Tournament`)
         perf = performance(pred,"tpr","fpr")
         performance(pred,"auc") 
         plot(perf,colorize=FALSE, col="black") 
         lines(c(0,1),c(0,1),col = "gray", lty = 4 )
         
-        auc_ROCR <- performance(pred, measure = "auc")
-        auc_ROCR <- auc_ROCR@y.values[[1]]
+        auc_ROCR = performance(pred, measure = "auc")
+        auc_ROCR = auc_ROCR@y.values[[1]]
         
         roc.glmnet(ptest,newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), newy = test_2$`Make Tournament`, family = "binomial")
         plot(roc.glmnet(model_cvnet,newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), newy = test_2$`Make Tournament`, family = "binomial"))
@@ -267,22 +255,21 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
         
         ms_2015 = merge(ps_traininv %>% filter(Season == 2015), as_traininv %>% filter(Season == 2015), by = "School")
         ms_2015$Prob = as.numeric(ms_2015$Prob)
-         
+  
               ggplot(ms_2015, aes(x = `Make Tournament`, y = Prob)) + geom_point(size = 0.5) +
                    geom_text(aes(label=School),hjust=0, vjust=0, size = 2.5) + 
                 scale_y_continuous(breaks = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)) + 
                    labs(y = "Predicted Probability")
                  
               ggplot(ms_2015, aes(x = `Make Tournament`, y = `Prob`, color = factor(ncc_2015$Power5))) + 
-                   geom_point(size=1) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
+                   geom_point(size=3.5) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
                    geom_text_repel(direction = "x",aes(label=ifelse((Prob > 0.15 & Prob < 0.45 & `Make Tournament` == 1) | (Prob > 0.4 & `Make Tournament` == 0) ,as.character(School),''))
-                             ,hjust=-0.05,vjust=0, size = 3.5) + 
-                   geom_hline(yintercept = (0.431+0.359)/2, linetype = "dashed", color = "red") + geom_text(aes(0,(0.431+0.359)/2,label = "Proposed Tournament Cutoff", hjust = -6.55, vjust = -0.5), size = 3) + 
+                             ,hjust=-0.05,vjust=0, size = 7) + 
+                   geom_hline(yintercept = (0.431+0.359)/2, linetype = "dashed", color = "red") + 
                    labs(y = "Predicted Probability") + guides(color=guide_legend("Power 5")) + 
                    scale_color_manual(values=c("dark orange", "black"), breaks = c(1,0)) + 
-                   ggtitle("2015 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities - Incorrect Selections Labeled") + 
-                   theme(plot.title = element_text(hjust = 0.5))
-                
+                   ggtitle("2015 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities") + 
+                theme(plot.title = element_text(size = 21,hjust = 0.5), axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15),axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18, margin = margin(r = 7.5)),legend.text=element_text(size=15),legend.title=element_text(size=18))
         ms_2016 = merge(ps_traininv %>% filter(Season == 2016), as_traininv %>% filter(Season == 2016), by = "School")
         ms_2016$Prob = as.numeric(ms_2016$Prob)
             
@@ -292,14 +279,14 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
                   labs(y = "Predicted Probability")
         
               ggplot(ms_2016, aes(x = `Make Tournament`, y = `Prob`, color = factor(ncc_2016$Power5))) + 
-                geom_point(size=1) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
+                geom_point(size=3.5) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
                 geom_text_repel(direction = "x",aes(label=ifelse((Prob > 0.15 & Prob < 0.472 & `Make Tournament` == 1) | (Prob > 0.482 & `Make Tournament` == 0) ,as.character(School),''))
-                          ,hjust=-0.075,vjust=0.5, size = 3.5) + 
-                geom_hline(yintercept = (0.490 + 0.481)/2,linetype = "dashed", color = "red") + geom_text(aes(0,(0.490 + 0.481)/2,label = "Proposed Tournament Cutoff", hjust = -6.55, vjust = -0.5), size = 3) + 
+                          ,hjust=-0.075,vjust=0.5, size = 7) + 
+                geom_hline(yintercept = (0.490 + 0.481)/2,linetype = "dashed", color = "red") + 
                 labs(y = "Predicted Probability") + guides(color=guide_legend("Power 5")) + 
                 scale_color_manual(values=c("dark orange", "black"), breaks = c(1,0)) + 
-                ggtitle("2016 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities - Incorrect Selections Labeled") + 
-                theme(plot.title = element_text(hjust = 0.5))
+                ggtitle("2016 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities") + 
+                theme(plot.title = element_text(size = 21,hjust = 0.5), axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15),axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18, margin = margin(r = 7.5)),legend.text=element_text(size=15),legend.title=element_text(size=18))
         
         ms_2017 = merge(ps_traininv %>% filter(Season == 2017), as_traininv %>% filter(Season == 2017), by = "School")
         ms_2017$Prob = as.numeric(ms_2017$Prob)
@@ -309,14 +296,14 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
                   labs(y = "Predicted Probability")
               
               ggplot(ms_2017, aes(x = `Make Tournament`, y = `Prob`, color = factor(ncc_2017$Power5))) + 
-                geom_point(size=1) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
+                geom_point(size=3.5) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
                 geom_text_repel(direction = "x",aes(label=ifelse((Prob > 0.15 & Prob < 0.50 & `Make Tournament` == 1) | (Prob > 0.52 & `Make Tournament` == 0) ,as.character(School),''))
-                          ,hjust=-0.05,vjust=-0.25, size = 3.5) + 
-                geom_hline(yintercept = (0.529 + 0.513)/2,linetype = "dashed", color = "red") + geom_text(aes(0,(0.529+0.513)/2,label = "Proposed Tournament Cutoff", hjust = -6.55, vjust = -0.5), size = 3) + 
+                          ,hjust=-0.05,vjust=-0.25, size = 7) + 
+                geom_hline(yintercept = (0.529 + 0.513)/2,linetype = "dashed", color = "red")  + 
                 labs(y = "Predicted Probability") + guides(color=guide_legend("Power 5")) + 
                 scale_color_manual(values=c("dark orange", "black"), breaks = c(1,0)) + 
-                ggtitle("2017 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities - Incorrect Selections Labeled") + 
-                theme(plot.title = element_text(hjust = 0.5))
+                ggtitle("2017 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities") + 
+                theme(plot.title = element_text(size = 21,hjust = 0.5), axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15),axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18, margin = margin(r = 7.5)),legend.text=element_text(size=15),legend.title=element_text(size=18))
        
         ms_2018 = merge(ps_traininv %>% filter(Season == 2018), as_traininv %>% filter(Season == 2018), by = "School")
         ms_2018$Prob = as.numeric(ms_2018$Prob)
@@ -326,14 +313,14 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
                   labs(y = "Predicted Probability")
               
               ggplot(ms_2018, aes(x = `Make Tournament`, y = `Prob`, color = factor(ncc_2018$Power5))) + 
-                geom_point(size=1) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
+                geom_point(size=3.5) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
                 geom_text_repel(direction = "x", aes(label=ifelse((Prob > 0.15 & Prob < 0.51 & `Make Tournament` == 1) | (Prob > 0.55 & `Make Tournament` == 0) ,as.character(School),''))
-                          ,hjust=-0.05,vjust=-0.25, size = 3.5) + 
-                geom_hline(yintercept = (0.577+0.510)/2, linetype = "dashed", color = "red") + geom_text(aes(0,(0.577+0.510)/2,label = "Proposed Tournament Cutoff", hjust = -6.55, vjust = -0.5), size = 3) + 
+                          ,hjust=-0.05,vjust=-0.25, size = 7) + 
+                geom_hline(yintercept = (0.577+0.510)/2, linetype = "dashed", color = "red")  + 
                 labs(y = "Predicted Probability") + guides(color=guide_legend("Power 5")) + 
                 scale_color_manual(values=c("dark orange", "black"), breaks = c(1,0)) + 
-                ggtitle("2018 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities - Incorrect Selections Labeled") + 
-                theme(plot.title = element_text(hjust = 0.5))
+                ggtitle("2018 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities") + 
+                theme(plot.title = element_text(size = 21,hjust = 0.5), axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15),axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18, margin = margin(r = 7.5)),legend.text=element_text(size=15),legend.title=element_text(size=18))
       
         ms_2019 = merge(ps_testinv, as_testinv, by = "School")
         ms_2019$Prob = as.numeric(ms_2019$Prob)
@@ -343,14 +330,14 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
                     labs(y = "Predicted Probability")
         
               ggplot(ms_2019, aes(x = `Make Tournament`, y = `Prob`, color = factor(ncc_2019$Power5))) + 
-                geom_point(size=1) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
+                geom_point(size=3.5) + scale_y_continuous(breaks = seq(0,1,by = 0.1)) +
                 geom_text_repel(direction = "x",aes(label=ifelse((Prob > 0 & Prob < 0.40 & `Make Tournament` == 1) | (Prob > 0.55 & `Make Tournament` == 0) ,as.character(School),''))
-                          ,hjust=-0.05,vjust=-0.2, size = 3.5) + 
-                geom_hline(yintercept = (0.494+0.459)/2, linetype = "dashed", color = "red") + geom_text(aes(0,(0.494+0.459)/2,label = "Proposed Tournament Cutoff", hjust = -6.55, vjust = -0.5), size = 3) + 
+                          ,hjust=-0.05,vjust=-0.2, size = 7) + 
+                geom_hline(yintercept = (0.494+0.459)/2, linetype = "dashed", color = "red") +  
                 labs(y = "Predicted Probability") + guides(color=guide_legend("Power 5")) + 
                 scale_color_manual(values=c("dark orange", "black"), breaks = c(1,0)) + 
-                ggtitle("2019 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities - Incorrect Selections Labeled") + 
-                theme(plot.title = element_text(hjust = 0.5))
+                ggtitle("2019 Teams Eligible for an At-Large Tournament Bid Ordered by Predicted Probabilities") + 
+                theme(plot.title = element_text(size = 21,hjust = 0.5), axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15),axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18, margin = margin(r = 7.5)),legend.text=element_text(size=15),legend.title=element_text(size=18))
         
         ## Identifying teams incorrectly selected and missed
         p = predict(model_cvnet, newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), s = "lambda.1se", type = "response")
@@ -395,7 +382,7 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
         ## 2018
         setdiff(ms_train$`Actual Schools`[109:144], ms_train$`Predicted Schools`[109:144])
         setdiff(ms_train$`Predicted Schools`[109:144], ms_train$`Actual Schools`[109:144])
-        ## Arizona St, Syracuse #11 seeds in First Four, Alabama, Florida St #9 seeds
+        ## Arizona St, Syracuse #11 seeds in First Four, Virginia Tech #8 seed, Florida St #9 seeds
         ## USC #1 seed in NIT, Louisville, Marquette #2 seeds in NIT Nebraska #5 seed in NIT
         
         ## 2019
@@ -404,6 +391,17 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
         ## Belmont, St. Johns #11 seeds in First Four Game, Ohio State #11 seed
         ## TCU, Texas, Creighton #1,#2 seeds in NIT,
         
+        
+        ## Building Table of Prediction Results
+        prediction_results = matrix(NA,nrow = 5, ncol = 3)
+        prediction_results[1:5,1] = c("2015", "2016", "2017", "2018", "2019")
+        prediction_results[1:5,2] = c(34,32,35,32,33)
+        prediction_results[1:5,3] = c(94.4,88.8,97.2,88.8,91.7)
+        prediction_results = as.data.frame(prediction_results)
+        colnames(prediction_results) = c("Season", "# of Correct Selections", "Correct Selections Percentage")
+        kable(prediction_results, format = "latex")
+        
+        ## Creating Dataset of Teams Incorrectly Left Out of Tournament
         which(train_2$School == "Boise State" & train_2$Season == 2015)
         which(train_2$School == "Cincinnati" & train_2$Season == 2015)
         
@@ -416,15 +414,17 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
 
         which(train_2$School == "Arizona State" & train_2$Season == 2018)
         which(train_2$School == "Syracuse" & train_2$Season == 2018)
-        which(train_2$School == "Alabama" & train_2$Season == 2018)
+        which(train_2$School == "Virginia Tech" & train_2$Season == 2018)
         which(train_2$School == "Florida State" & train_2$Season == 2018)
         
         which(test_2$School == "Belmont")
         which(test_2$School == "St. John's (NY)")
         which(test_2$School == "Ohio State")
         
-        leftout = rbind(train_2[c(21,46,601,581,472,580,893,967,1220,959,1040),], test_2[c(20,264,204),])
+        leftout = rbind(train_2[c(21,46,601,581,472,580,893,967,1220,1254,1040),], test_2[c(20,264,204),])
         
+        
+        ## Creating Dataset of Teams Incorrectly Put In Tournament
         which(train_2$School == "Colorado State" & train_2$Season == 2015)
         which(train_2$School == "Miami (FL)" & train_2$Season == 2015)
         
@@ -470,7 +470,6 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
       ps_train = predictions %>% group_by(Season) %>% arrange(Season,-probs)
       ps_train = by(ps_train, ps_train["Season"], head, 36)
       ps_train = Reduce(rbind,ps_train)
-      ps_train = ps_train %>% group_by(Season) %>% arrange(School, .by_group = TRUE)
       ps_train[,1:2] = lapply(ps_train[,1:2], as.character)
       as_train = train %>% filter(`Make Tournament` == 1) %>% select(School, Season)
       ms_train = as.data.frame(cbind(ps_train$School, ps_train$Season, as_train$School))
@@ -501,7 +500,6 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
       ps_train = predictions %>% group_by(Season) %>% arrange(Season,(desc(p)))
       ps_train = by(ps_train, ps_train["Season"], head, 36)
       ps_train = Reduce(rbind,ps_train)
-      ps_train = ps_train %>% group_by(Season) %>% arrange(School, .by_group = TRUE)
       ps_train[,1:2] = lapply(ps_train[,1:2], as.character)
       as_train = train_2 %>% filter(`Make Tournament` == 1) %>% select(School, Season)
       ms_train = as.data.frame(cbind(ps_train$School, ps_train$Season, as_train$School))
@@ -554,9 +552,14 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
                                   "Adj. DE", "Barthag", "SOS", "Non-Conf SOS", "Conf SOS", "Conf Win %",
                                    "Eff Rank Avg", "Power 5", "Win %"),5)
             
-            ggplot(secoefs[-c(1,16,31,46,61),], aes(x = Variable, y = `Coefficient Value`, group = Season, color = Season)) + geom_line(size = 1.2) +
+            ggplot(secoefs[-c(1,16,31,46,61),], aes(x = Variable, y = `Coefficient Value`, group = Season, color = Season)) + geom_line(size = 1.4) +
               geom_point() + labs(color = "Season") + ggtitle("Coefficient Values of Each Variable in CV.GLMNET Model By Season") + theme(plot.title = element_text(hjust = 0.5)) + 
-              scale_color_gradient() + geom_text_repel(direction = "y", force = 2, nudge_x = 1, aes(label = ifelse(Variable == "SOS",Season,"")), size = 3) + 
-              theme(legend.position = "none")
-  
+              scale_color_gradient() + geom_text_repel(direction = "y", force = 2, nudge_x = 1, aes(label = ifelse(Variable == "SOS",Season,"")), size = 7) + 
+              theme(legend.position = "none") + theme(plot.title = element_text(size = 21,hjust = 0.5), axis.text.x = element_text(size = 20, angle = 45, vjust = 0.65), axis.text.y = element_text(size = 15),axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18, margin = margin(r = 7.5)),legend.text=element_text(size=15),legend.title=element_text(size=18))
+            
+            
+            ### JUSTINCASE
+            + geom_text(aes(0,(0.577+0.510)/2,label = "Proposed Tournament Cutoff", hjust = -3.95, vjust = -0.5), size = 4.5)
+            ###
     
+            
