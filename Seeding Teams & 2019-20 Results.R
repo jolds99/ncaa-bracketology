@@ -1,21 +1,5 @@
-## Adding Indicator for if team is in Power 5 Conference
-ccdata$Power5 = rep(NA, length(ccdata$School))
-for(i in 1:length(ccdata$School)){
-  if(ccdata$Conference[i] == "SEC" || ccdata$Conference[i] == "P12" ||
-     ccdata$Conference[i] == "B12" || ccdata$Conference[i] == "B10" || 
-     ccdata$Conference[i] == "ACC"){
-    ccdata$Power5[i] = 1
-  }
-  else{
-    ccdata$Power5[i] = 0
-  }
-}
-
-## Adding Win Percentage Variable 
-ccdata$`Win Percentage` = rep(NA, length(ccdata$School))
-for(i in 1:length(ccdata$School)){
-  ccdata$`Win Percentage`[i] = round(ccdata$Wins[i]/sum(ccdata$Wins[i],ccdata$Losses[i]),3)
-}
+library(dplyr)
+library(plyr)
 
 ## Seeding Function
 determine_seeds_function = function(season, ms_year, ncc_year){
@@ -242,11 +226,12 @@ count
 }
 
     ## Application of function to each year
-    true_seed_count_function(selections_2015, results_2015) 
-    true_seed_count_function(selections_2016, results_2016)
-    true_seed_count_function(selections_2017, results_2017)
-    true_seed_count_function(selections_2018, results_2018)
-    true_seed_count_function(selections_2019, results_2019)
+    true_seed_2015 = true_seed_count_function(selections_2015, results_2015) 
+    true_seed_2016 = true_seed_count_function(selections_2016, results_2016)
+    true_seed_2017 = true_seed_count_function(selections_2017, results_2017)
+    true_seed_2018 = true_seed_count_function(selections_2018, results_2018)
+    true_seed_2019 = true_seed_count_function(selections_2019, results_2019)
+    
 
 ## Function to produce number of seeds within one of correct seed 
 within_one_seed_count_function = function(selections_year,results_year){
@@ -321,11 +306,11 @@ within_one_seed_count_function = function(selections_year,results_year){
 }
 
     ## Application of function to each season
-    within_one_seed_count_function(selections_2015, results_2015)  
-    within_one_seed_count_function(selections_2016, results_2016)
-    within_one_seed_count_function(selections_2017, results_2017)
-    within_one_seed_count_function(selections_2018, results_2018)
-    within_one_seed_count_function(selections_2019, results_2019)
+    within_one_2015 = within_one_seed_count_function(selections_2015, results_2015)  
+    within_one_2016 = within_one_seed_count_function(selections_2016, results_2016)
+    within_one_2017 = within_one_seed_count_function(selections_2017, results_2017)
+    within_one_2018 = within_one_seed_count_function(selections_2018, results_2018)
+    within_one_2019 = within_one_seed_count_function(selections_2019, results_2019)
     
     
 ## Preparing 2019-20 data to run through model
@@ -387,22 +372,20 @@ within_one_seed_count_function = function(selections_year,results_year){
     
     conferences_used = c("ACC", "ASun", "BSth", "CAA", "Horz", "Ivy", "MVC", 
                          "MWC", "NEC", "OVC", "Pat", "SC", "Sum", "WCC")
-
-    predictions_2020$Conference[19]
     
     
-    conf_no_champs_2020 = predictions_2020 %>% filter(!(Conference %in% conferences_used))
+    conferences_not_used_2020 = predictions_2020 %>% filter(!(Conference %in% conferences_used))
     
-    conf_no_champs_2020 = conf_no_champs_2020 %>% group_by(Conference) %>% arrange(Conference, desc(Prob))
-    conf_champs_2020 = by(conf_no_champs_2020, conf_no_champs_2020["Conference"], head, 1)
-    conf_champs_2020 = Reduce(rbind,conf_champs_2020)
+    conferences_not_used_2020 = conferences_not_used_2020 %>% group_by(Conference) %>% arrange(Conference, desc(Prob))
+    auto_bids_2020 = by(conferences_not_used_2020, conferences_not_used_2020["Conference"], head, 1)
+    auto_bids_2020 = Reduce(rbind,auto_bids_2020)
     
-    conf_no_champs_2020 = conf_no_champs_2020 %>% filter(!School %in% conf_champs_2020$School)  
-    conf_no_champs_2020 = conf_no_champs_2020 %>% arrange(desc(Prob))
-    conf_no_champs_2020 = conf_no_champs_2020[1:36,1:3]
+    no_conf_champs_2020 = predictions_2020 %>% filter(!(School %in% auto_bids_2020$School))
+    no_conf_champs_2020 = no_conf_champs_2020 %>% arrange(desc(Prob))
+    at_large_bids_2020 = no_conf_champs_2020[1:36,1:3]
     
     selections_2020 = full_2020 %>% filter(`Conference Champ` == 1) 
-    selections_2020 = rbind(selections_2020, full_2020 %>% filter(School %in% conf_champs_2020$School), full_2020 %>% filter(School %in% conf_no_champs_2020$School))
+    selections_2020 = rbind(selections_2020, full_2020 %>% filter(School %in% auto_bids_2020$School), full_2020 %>% filter(School %in% at_large_bids_2020$School))
     
     probs_2020 = predict(model_cvnet, newx = as.matrix(selections_2020[,c(4:6,10,12,14,16,19:22,25,28,29)]), s = "lambda.1se", type = "response")
     seeds = as.data.frame(cbind(selections_2020$School,probs_2020))
@@ -429,6 +412,37 @@ within_one_seed_count_function = function(selections_year,results_year){
     seeds$`Tournament Seed`[59:62] = 15
     seeds$`Tournament Seed`[63:68] = 16
     
-    seeds
+    selections_2020 = seeds
+
+        ## Plotting Count of Correct Seeds Assigned by Season
+    seed_results = matrix(NA,nrow = 10, ncol = 3)
+    seed_results[1:10,1] = c(2015,2015,2016,2016,2017,2017,2018,2018,2019,2019)
+    seed_results[1:10,2] = c(true_seed_2015, within_one_2015, true_seed_2016,
+                             within_one_2016, true_seed_2017, within_one_2017,
+                             true_seed_2018, within_one_2018, true_seed_2019, 
+                             within_one_2019)
+    seed_results[1:10,3] = rep(c("True Seed","Within One Seed"),5)
+    seed_results = as.data.frame(seed_results)
+    colnames(seed_results) = c("Season", "Total", "Seed Result")
+    seed_results$Total = as.numeric(seed_results$Total)
+    ggplot(seed_results, aes(x = Season, y = Total, fill = `Seed Result`)) + geom_bar(stat = "identity",position = position_dodge()) + 
+      scale_fill_manual(values = c("dark orange", "black")) + geom_text(aes(label=Total), vjust=1.6, color="white", position = position_dodge(0.9), size=7) + 
+      scale_y_continuous(breaks = seq(0,68,by = 4), limits = c(0,68)) + ggtitle("Count of Correct Seeds Assigned by Season") + 
+      theme(plot.title = element_text(size = 21,hjust = 0.5), axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15),axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18, margin = margin(r = 7.5)),legend.text=element_text(size=15),legend.title=element_text(size=18))
     
-  
+    ## 2016 Seeds Example
+    
+    compare_2016 = cbind(selections_2016, results_2016)
+    compare_2016 = compare_2016[,c(1:6)]
+    for(i in 1:length(compare_2016$School)){
+      for(j in 1:68){
+      if(compare_2016$School[i] == compare_2016$School.1[j]){
+        compare_2016$`Actual Seed`[i] = compare_2016$Seed[j]
+      }
+      }
+    }
+    compare_2016 = compare_2016[,c(1:4)]
+    colnames(compare_2016)[3] = "Predicted Seed"
+    compare_2016$Probability = as.numeric(compare_2016$Probability)
+    compare_2016$Probability = round(compare_2016$Probability,3)
+    
