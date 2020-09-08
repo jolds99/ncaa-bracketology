@@ -39,7 +39,7 @@ library(httr)
     data_2016 = create_data_function("JSON Data Files/20160312_team_results.json")
     data_2015 = create_data_function("JSON Data Files/20150314_team_results.json")
     
-  ## Using SportsReference data to add other variables (www.sportsreference.com/cbb)
+  ## Using SportsReference data to add other variables (www.sports-reference.com/cbb)
     
   sr_2020 = read_csv("SR CSV Data Files/2020SRData.csv")
   sr_2019 = read_csv("SR CSV Data Files/2019SRData.csv")
