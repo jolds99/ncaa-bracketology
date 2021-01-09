@@ -1,7 +1,7 @@
 # Modeling Selection Sunday - An Investigation into the March Madness Bracket
 **Jonathan Olds - Summmer 2020**
 
-*This project serves as an attempt to accurately replicate the selection and seeding procedures of the NCAA Selection Committee for the Men's College Basketball Championship Tournament using a LASSO-penalized logistic regression model. This work was conducted from June to August of 2020 under the supervision of Associate Professor Bailey Fosdick at Colorado State University*
+*This project serves as an attempt to accurately replicate the selection and seeding procedures of the NCAA Selection Committee for the Men's College Basketball Championship Tournament using a LASSO-penalized logistic regression model. This work was conducted from June to August of 2020 under the supervision of Associate Professor Bailey Fosdick at Colorado State University.*
 
 
 
