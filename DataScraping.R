@@ -32,21 +32,21 @@ library(httr)
       data_hold
     }
     
-    data_2020 = create_data_function("JSON Data Files/20200312_team_results.json")
-    data_2019 = create_data_function("JSON Data Files/20190316_team_results.json")
-    data_2018 = create_data_function("JSON Data Files/20180310_team_results.json")
-    data_2017 = create_data_function("JSON Data Files/20170311_team_results.json")
-    data_2016 = create_data_function("JSON Data Files/20160312_team_results.json")
-    data_2015 = create_data_function("JSON Data Files/20150314_team_results.json")
+    data_2020 = create_data_function("JSON Datasets/20200312_team_results.json")
+    data_2019 = create_data_function("JSON Datasets/20190316_team_results.json")
+    data_2018 = create_data_function("JSON Datasets/20180310_team_results.json")
+    data_2017 = create_data_function("JSON Datasets/20170311_team_results.json")
+    data_2016 = create_data_function("JSON Datasets/20160312_team_results.json")
+    data_2015 = create_data_function("JSON Datasets/20150314_team_results.json")
     
   ## Using SportsReference data to add other variables (www.sports-reference.com/cbb)
     
-  sr_2020 = read_csv("SR CSV Data Files/2020SRData.csv")
-  sr_2019 = read_csv("SR CSV Data Files/2019SRData.csv")
-  sr_2018 = read_csv("SR CSV Data Files/2018SRData.csv")
-  sr_2017 = read_csv("SR CSV Data Files/2017SRData.csv")
-  sr_2016 = read_csv("SR CSV Data Files/2016SRData.csv")
-  sr_2015 = read_csv("SR CSV Data Files/2015SRData.csv")
+  sr_2020 = read_csv("SR CSV Datasets/2020SRData.csv")
+  sr_2019 = read_csv("SR CSV Datasets/2019SRData.csv")
+  sr_2018 = read_csv("SR CSV Datasets/2018SRData.csv")
+  sr_2017 = read_csv("SR CSV Datasets/2017SRData.csv")
+  sr_2016 = read_csv("SR CSV Datasets/2016SRData.csv")
+  sr_2015 = read_csv("SR CSV Datasets/2015SRData.csv")
   
   clean_sr_function = function(x){
   sr = x[,2]
@@ -608,8 +608,10 @@ library(httr)
       
   ## 2020 RPI
   dictionary_rpi_2020 = create_rpi_dictionary_function(sr_2020$School,rpi_2020$Team)
-  dictionary_rpi_2020[35,2] = "ETennSt"
-  dictionary_rpi_2020[36,2] = "NCAT"
+  dictionary_rpi_2020[35,2] = "NCWilmgton"
+  dictionary_rpi_2020[36,2] = "CSBakersfld"
+  dictionary_rpi_2020[37,2] = "CalBaptist"
+  dictionary_rpi_2020[64,2] = "California"
   dictionary_rpi_2020[79,2] = "ILChicago"
   dictionary_rpi_2020[83,2] = "TNState"
   dictionary_rpi_2020[85,2] = "WashState"
@@ -623,17 +625,17 @@ library(httr)
   dictionary_rpi_2020[147,2] = "GATech"
   dictionary_rpi_2020[156,2] = "NKentucky"
   dictionary_rpi_2020[179,2] = "LSU"
-  dictionary_rpi_2020[188,2] = "NIowa"
-  dictionary_rpi_2020[191,2] = "NIllinois"
-  dictionary_rpi_2020[192,2] = "NCWilmgton"
-  dictionary_rpi_2020[193,2] = "NColorado"
-  dictionary_rpi_2020[194,2] = "NCAsheville"
-  dictionary_rpi_2020[195,2] = "NArizona"
-  dictionary_rpi_2020[196,2] = "SEMissouri"
-  dictionary_rpi_2020[197,2] = "BYU"
-  dictionary_rpi_2020[208,2] = "EIllinois"
-  dictionary_rpi_2020[209,2] = "NWState"
-  dictionary_rpi_2020[211,2] = "TNTech"
+  dictionary_rpi_2020[189,2] = "NIowa"
+  dictionary_rpi_2020[192,2] = "NIllinois"
+  dictionary_rpi_2020[193,2] = "NArizona"
+  dictionary_rpi_2020[194,2] = "NColorado"
+  dictionary_rpi_2020[195,2] = "NCAsheville"
+  dictionary_rpi_2020[196,2] = "NCState"
+  dictionary_rpi_2020[197,2] = "SEMissouri"
+  dictionary_rpi_2020[198,2] = "BYU"
+  dictionary_rpi_2020[209,2] = "EIllinois"
+  dictionary_rpi_2020[210,2] = "NWState"
+  dictionary_rpi_2020[212,2] = "TNTech"
   dictionary_rpi_2020[220,2] = "NCCentral"
   dictionary_rpi_2020[262,2] = "VATech"
   dictionary_rpi_2020[265,2] = "LALafayette"
@@ -641,13 +643,13 @@ library(httr)
   dictionary_rpi_2020[270,2] = "StFranPA"
   dictionary_rpi_2020[281,2] = "SELouisiana"
   dictionary_rpi_2020[287,2] = "SCUpstate"
-  dictionary_rpi_2020[295,2] = "NCState"
+  dictionary_rpi_2020[295,2] = "NCAT"
   dictionary_rpi_2020[296,2] = "NCGrnsboro"
   dictionary_rpi_2020[297,2] = "TNMartin"
   dictionary_rpi_2020[309,2] = "SIllinois"
-  dictionary_rpi_2020[317,2] = "California"
   dictionary_rpi_2020[325,2] = "WmMary"
-  dictionary_rpi_2020[327,2] = "VAMilitary"
+  dictionary_rpi_2020[317,2] = "VAMilitary"
+  dictionary_rpi_2020[327,2] = "ETennSt"
   dictionary_rpi_2020[335,2] = "LgBeachSt"
   dictionary_rpi_2020[346,2] = "FDickinson"
   
@@ -663,7 +665,9 @@ library(httr)
   ## 2019 RPI
   dictionary_rpi_2019 = create_rpi_dictionary_function(sr_2019$School,rpi_2019$Team)
   dictionary_rpi_2019[35,2] = "NKentucky"
-  dictionary_rpi_2019[36,2] = "NCAT"
+  dictionary_rpi_2019[36,2] = "CSBakersfld"
+  dictionary_rpi_2019[37,2] = "CalBaptist"
+  dictionary_rpi_2019[64,2] = "California"
   dictionary_rpi_2019[79,2] = "ILChicago"
   dictionary_rpi_2019[83,2] = "TNState"
   dictionary_rpi_2019[85,2] = "WashState"
@@ -675,20 +679,24 @@ library(httr)
   dictionary_rpi_2019[143,2] = "LATech"
   dictionary_rpi_2019[145,2] = "GASouthern"
   dictionary_rpi_2019[147,2] = "GATech"
-  dictionary_rpi_2019[150,2] = "ETennSt"
+  dictionary_rpi_2019[150,2] = "NCWilmgton"
   dictionary_rpi_2019[156,2] = "LIUBrooklyn"
   dictionary_rpi_2019[178,2] = "LSU"
-  dictionary_rpi_2019[187,2] = "NIowa"
-  dictionary_rpi_2019[190,2] = "NIllinois"
-  dictionary_rpi_2019[191,2] = "NCWilmgton"
-  dictionary_rpi_2019[192,2] = "NColorado"
-  dictionary_rpi_2019[193,2] = "NCAsheville"
-  dictionary_rpi_2019[194,2] = "NArizona"
-  dictionary_rpi_2019[195,2] = "SEMissouri"
-  dictionary_rpi_2019[196,2] = "BYU"
-  dictionary_rpi_2019[207,2] = "EIllinois"
-  dictionary_rpi_2019[208,2] = "NWState"
-  dictionary_rpi_2019[210,2] = "TNTech"
+  dictionary_rpi_2019[187,2] = "NAlabama"
+  dictionary_rpi_2019[188,2] = "NIowa"
+  dictionary_rpi_2019[190,2] = "NCarolina"
+  dictionary_rpi_2019[191,2] = "NIllinois"
+  dictionary_rpi_2019[192,2] = "NArizona"
+  dictionary_rpi_2019[193,2] = "NColorado"
+  dictionary_rpi_2019[194,2] = "NCAsheville"
+  dictionary_rpi_2019[195,2] = "NCState"
+  dictionary_rpi_2019[196,2] = "SEMissouri"
+  dictionary_rpi_2019[197,2] = "BYU"
+  dictionary_rpi_2019[207,2] = "NichollsSt"
+  dictionary_rpi_2019[208,2] = "EIllinois"
+  dictionary_rpi_2019[209,2] = "NWState"
+  dictionary_rpi_2019[210,2] = "NJIT"
+  dictionary_rpi_2019[211,2] = "TNTech"
   dictionary_rpi_2019[219,2] = "NCCentral"
   dictionary_rpi_2019[262,2] = "VATech"
   dictionary_rpi_2019[265,2] = "LALafayette"
@@ -696,14 +704,14 @@ library(httr)
   dictionary_rpi_2019[270,2] = "StFranPA"
   dictionary_rpi_2019[281,2] = "SELouisiana"
   dictionary_rpi_2019[287,2] = "SCUpstate"
-  dictionary_rpi_2019[295,2] = "NCState"
+  dictionary_rpi_2019[295,2] = "NCAT"
   dictionary_rpi_2019[296,2] = "NCGrnsboro"
   dictionary_rpi_2019[297,2] = "TNMartin"
   dictionary_rpi_2019[307,2] = "TXPanAm"
   dictionary_rpi_2019[309,2] = "SIllinois"
-  dictionary_rpi_2019[317,2] = "California"
   dictionary_rpi_2019[325,2] = "WmMary"
-  dictionary_rpi_2019[327,2] = "VAMilitary"
+  dictionary_rpi_2019[327,2] = "ETennSt"
+  dictionary_rpi_2019[317,2] = "VAMilitary"
   dictionary_rpi_2019[335,2] = "LgBeachSt"
   dictionary_rpi_2019[346,2] = "FDickinson"
   

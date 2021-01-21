@@ -11,6 +11,7 @@ library(Hmisc)
 library(ggrepel)
 library(glmnet)
 library(knitr)
+options(scipen = 999)
 
 ## Creating data frame of just conference champs
 ccdata = alldata %>% filter(`Conference Champ` == 1)
@@ -164,38 +165,18 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
     ## Note all models have multicollinarity concerns (see VIF figures), 
     ## primarily due to relationship between SOS, Non-Conf SOS, Conf SOS
    
-    ## GLMNET Models
-    
-        model_net = glmnet(x = as.matrix(train_2[,c(4:6,10,12,14,16,19:23,25,28,29)]), y = train_2$`Make Tournament`, family = binomial)
-        model_cvnet = cv.glmnet(x = as.matrix(train_2[,c(4:6,10,12,14,16,19:23,25,28,29)]), y = train_2$`Make Tournament`, family = binomial)
-    
-        ## Taking Wins Above Bubble Out
+    ## GLMNET Models - Wins Above Bubble Removed due to the nature of its designed metric
         model_net = glmnet(x = as.matrix(train_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), y = train_2$`Make Tournament`, family = binomial)
         model_cvnet = cv.glmnet(x = as.matrix(train_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), y = train_2$`Make Tournament`, family = binomial, alpha = 0.5)
       
-          ## Load Model - if needed
-        ## model_cvnet = readRDS("Models/CV-GLMNET Model")
-          
+          ## Load Model Used in Report - if needed
+       ## model_cvnet = readRDS("Glmnet Models/CV-GLMNET Model")
   
           model_cvnet$lambda.min
           model_cvnet$lambda.1se
           
           coef(model_cvnet, s = "lambda.min")
           coef(model_cvnet, s = "lambda.1se")
-          
-          ## Creating Table of Coefficient Values
-          cv_coefs = matrix(NA, nrow = 15, ncol = 2)
-          
-          cv_coefs[1:15,1] = c("Intercept", "Last 12 Wins", "Conference Finish", "RPI Rank", 
-                               "Wins", "Adj. Offensive Efficiency", "Adj. Defensive Efficiency", 
-                               "Barthag", "SOS", "Non-Conf SOS", "Conference SOS", "Conference Win %", 
-                               "Efficiency Rank Avg", "Power 5", "Win Percentage")
-          cv_coefs[1:15,2] = c(-20.464, 0.004, -0.200, -0.036, 0.183, 0.154, -0.090,
-                               0.000, 13.952, 0.000, 2.715, 0.000, 0.000, 0.000, 0.000)
-          
-          cv_coefs = as.data.frame(cv_coefs)
-          colnames(cv_coefs) = c("Variable", "Coefficient Value")
-          kable(cv_coefs, format = "latex")
           
         ## Confusion Matrix, ROC Curve & AUC Calculation
         ptest = predict(model_cvnet, newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), s = "lambda.1se", type = "response")
@@ -211,15 +192,24 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
        
         pred = prediction(ptest, test_2$`Make Tournament`)
         perf = performance(pred,"tpr","fpr")
-        performance(pred,"auc") 
-        plot(perf,colorize=FALSE, col="black") 
-        lines(c(0,1),c(0,1),col = "gray", lty = 4 )
+    
+        tpr = attr(perf, "y.values")[[1]]
         
-        auc_ROCR = performance(pred, measure = "auc")
-        auc_ROCR = auc_ROCR@y.values[[1]]
+        fpr = attr(perf, "x.values")[[1]]
         
-        roc.glmnet(ptest,newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), newy = test_2$`Make Tournament`, family = "binomial")
-        plot(roc.glmnet(model_cvnet,newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), newy = test_2$`Make Tournament`, family = "binomial"))
+        auc = round(attr(performance(pred, "auc"), "y.values")[[1]],3)
+        
+        
+        roc.data <- data.frame(fpr=fpr, tpr=tpr, model="model_cvnet")
+        
+        ggplot(roc.data, aes(x=fpr, ymin=0, ymax=tpr)) +
+          geom_ribbon(alpha=0.2) +
+          geom_line(aes(y=tpr)) +
+          ggtitle(paste0("ROC Curve with AUC = ", auc)) + 
+          theme(plot.title = element_text(hjust = 0.5)) + 
+          xlab("False Positive Rate") + 
+          ylab("True Positive Rate") + 
+          geom_segment(x = 0, xend = 1, y = 0, yend = 1, color = "black", lty = "dashed")
         
         ptrain = predict(model_cvnet, newx = as.matrix(train_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), s = "lambda.1se", type = "response")
         for(i in 1:1274){
@@ -250,7 +240,6 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
         predictions_traininv = as.data.frame(cbind(train_2$School, train_2$Season,p_traininv))
         colnames(predictions_traininv) = c("School", "Season", "Prob")
         ps_traininv = predictions_traininv %>% group_by(Season) %>% arrange(Season,(desc(p_traininv)))
-        ps_traininv = ps_traininv %>% group_by(Season) %>% arrange(School, .by_group = TRUE)
         as_traininv = train_2 %>% select(School, `Make Tournament`,Season)
         
         ms_2015 = merge(ps_traininv %>% filter(Season == 2015), as_traininv %>% filter(Season == 2015), by = "School")
@@ -355,7 +344,6 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
         ps_train = predictions %>% group_by(Season) %>% arrange(Season,(desc(p)))
         ps_train = by(ps_train, ps_train["Season"], head, 36)
         ps_train = Reduce(rbind,ps_train)
-        ps_train = ps_train %>% group_by(Season) %>% arrange(School, .by_group = TRUE)
         ps_train[,1:2] = lapply(ps_train[,1:2], as.character)
         as_train = train_2 %>% filter(`Make Tournament` == 1) %>% select(School, Season)
         ms_train = as.data.frame(cbind(ps_train$School, ps_train$Season, as_train$School))
@@ -481,7 +469,8 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
       cp = sum(correct_15,correct_16,correct_17,correct_18)/144
       cp
     }
-  
+
+    
     calc_glmnet_test_probs = function(model,s){
       p = predict(model, newx = as.matrix(test_2[,c(4:6,10,12,14,16,19:22,25,28,29)]), s , type = "response")
       predictions = as.data.frame(cbind(test_2$School,p))
@@ -557,9 +546,23 @@ coefs$Name = c("L12", "CF", "RPI", "W", "AOE", "DOE", "BT", "SOS", "NCSOS", "CSO
               scale_color_gradient() + geom_text_repel(direction = "y", force = 2, nudge_x = 1, aes(label = ifelse(Variable == "SOS",Season,"")), size = 7) + 
               theme(legend.position = "none") + theme(plot.title = element_text(size = 21,hjust = 0.5), axis.text.x = element_text(size = 20, angle = 45, vjust = 0.65), axis.text.y = element_text(size = 15),axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18, margin = margin(r = 7.5)),legend.text=element_text(size=15),legend.title=element_text(size=18))
             
+      
             
-            ### JUSTINCASE
-            + geom_text(aes(0,(0.577+0.510)/2,label = "Proposed Tournament Cutoff", hjust = -3.95, vjust = -0.5), size = 4.5)
-            ###
-    
             
+            ## Additional Code
+            ## Creating Table of Coefficient Values
+            cv_coefs = matrix(NA, nrow = 15, ncol = 2)
+            
+            cv_coefs[1:15,1] = c("Intercept", "Last 12 Wins", "Conference Finish", "RPI Rank", 
+                                 "Wins", "Adj. Offensive Efficiency", "Adj. Defensive Efficiency", 
+                                 "Barthag", "SOS", "Non-Conf SOS", "Conference SOS", "Conference Win %", 
+                                 "Efficiency Rank Avg", "Power 5", "Win Percentage")
+            cv_coefs[1:15,2] = c(-20.464, 0.004, -0.200, -0.036, 0.183, 0.154, -0.090,
+                                 0.000, 13.952, 0.000, 2.715, 0.000, 0.000, 0.000, 0.000)
+            
+            cv_coefs = as.data.frame(cv_coefs)
+            colnames(cv_coefs) = c("Variable", "Coefficient Value")
+            kable(cv_coefs, format = "latex")
+            
+            
+            ## Potential line of code in ps_train code segment

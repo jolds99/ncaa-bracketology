@@ -4,17 +4,24 @@ library(tidyverse)
 library(dplyr)
 
 ## Load full Datasets
-full_2015 = read_csv("Full CSV Data Files/full_2015.csv")
-full_2016 = read_csv("Full CSV Data Files/full_2016.csv")
-full_2017 = read_csv("Full CSV Data Files/full_2017.csv")
-full_2018 = read_csv("Full CSV Data Files/full_2018.csv")
-full_2019 = read_csv("Full CSV Data Files/full_2019.csv")
-full_2020 = read_csv("Full CSV Data Files/full_2020.csv")
+full_2015 = read_csv("Full CSV Datasets/full_2015.csv")
+full_2016 = read_csv("Full CSV Datasets/full_2016.csv")
+full_2017 = read_csv("Full CSV Datasets/full_2017.csv")
+full_2018 = read_csv("Full CSV Datasets/full_2018.csv")
+full_2019 = read_csv("Full CSV Datasets/full_2019.csv")
+full_2020 = read_csv("Full CSV Datasets/full_2020.csv")
 
 ## 2015-2019 Data Merged
 alldata = rbind(full_2015,full_2016,full_2017,full_2018,full_2019)
+
+## Changing class of various datasets
 alldata$`Make Tournament`= as.factor(alldata$`Make Tournament`)
 alldata$`Conference Champ` = as.factor(alldata$`Conference Champ`)
+alldata$`Conference Finish` = as.numeric(alldata$`Conference Finish`)
+alldata$`RPI Rank`= as.numeric(alldata$`RPI Rank`)
+alldata$`NET Rank` = as.numeric(alldata$`NET Rank`)
+full_2020$`NET Rank` = as.numeric(full_2020$`NET Rank`)
+full_2020$`RPI Rank` = as.numeric(full_2020$`RPI Rank`)
 
 ## Adding Indicator for if team is in Power 5 Conference
 alldata$Power5 = rep(NA, length(alldata$School))
@@ -34,6 +41,7 @@ alldata$`Win Percentage` = rep(NA, length(alldata$School))
 for(i in 1:length(alldata$School)){
   alldata$`Win Percentage`[i] = round(alldata$Wins[i]/sum(alldata$Wins[i],alldata$Losses[i]),3)
 }
+
 
 table1 =  alldata %>% 
   group_by(`Make Tournament`) %>% 
